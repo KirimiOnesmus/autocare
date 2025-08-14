@@ -1,4 +1,5 @@
 import { Login,Register } from './pages/auth'
+import {Home} from "./pages/customer"
 import { BrowserRouter, Routes,Route } from 'react-router-dom'
 import "./index.css"
 function App() {
@@ -9,6 +10,7 @@ function App() {
       <Routes>
         <Route path='/' element={<Login/>}/>
         <Route path='/register' element={<Register/>}/>
+        <Route path='/home' element={<Home/>}/>
       </Routes>    
       </BrowserRouter>
       
