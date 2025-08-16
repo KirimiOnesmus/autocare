@@ -9,12 +9,12 @@ import {
   FaWrench,
   FaPalette,
   FaCalendarAlt,
-  FaPhone,
   FaSearch,
-  FaFilter,
 } from "react-icons/fa";
 import { IoSparkles } from "react-icons/io5";
-// Sample Data
+import { useNavigate } from "react-router-dom";
+import BusinessProfile from "./BusinessProfile"
+
 const sampleBusinesses = [
   {
     id: 1,
@@ -76,6 +76,7 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("");
+  const navigate = useNavigate()
 //   const [isLoading, setIsLoading] = useState(false);
 
   // Filtered list
@@ -112,6 +113,13 @@ const Home = () => {
 
   const handleBookService = (businessId) => {
     console.log("Booking service for:", businessId);
+    navigate(`/business/${businessId}`, {
+  state: {
+    name: sampleBusinesses.name,
+    location: sampleBusinesses.location,
+    services: sampleBusinesses.services
+  }
+})
   };
 
   return (
@@ -275,7 +283,7 @@ const Home = () => {
                     <div className="flex gap-3">
                       <button
                         onClick={() => handleBookService(business.id)}
-                        className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700"
+                        className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-white hover:text-blue-500 hover:border border-blue-500 hover:cursor-pointer"
                       >
                         <FaCalendarAlt /> Book Now
                       </button>

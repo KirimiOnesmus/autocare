@@ -2,15 +2,23 @@ import React from "react";
 import { FaSearchLocation } from "react-icons/fa";
 import { IoIosNotifications } from "react-icons/io";
 import avatar from "../../assets/avatar.jpg"
+import { IoSparkles } from "react-icons/io5";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
+  const navigate = useNavigate()
   return (
-    <div className="flex justify-between items-center py-4 px-6 bg-white/70 backdrop-blur-md shadow-sm sticky top-0 z-50">
+    <div className="flex justify-between items-center py-4 px-6 bg-white/30 backdrop-blur-md shadow-sm sticky top-0 z-50">
       <div className="flex items-center gap-2 text-xl font-bold text-blue-500">
         <FaSearchLocation />
         <span>AutoCare</span>
       </div>
       <div className="flex items-center gap-4">
+        <button 
+        onClick={()=>{
+          navigate(`/bookings`)
+        }}
+        className="text-white bg-blue-500 p-2 rounded-lg cursor-pointer hover:text-blue-500 hover:bg-white hover:border border-blue-500">My Bookings</button>
         <button className="relative text-2xl text-gray-700 hover:text-blue-600 transition">
           <IoIosNotifications />
           <span className="absolute -top-1 -right-1 bg-red-500 text-white  text-xs w-4 h-4 flex items-center justify-center rounded-full">

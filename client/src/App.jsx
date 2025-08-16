@@ -1,5 +1,5 @@
 import { Login,Register } from './pages/auth'
-import {Home} from "./pages/customer"
+import {Home,BusinessProfile,Bookings} from "./pages/customer"
 import { BrowserRouter, Routes,Route } from 'react-router-dom'
 import "./index.css"
 function App() {
@@ -11,6 +11,8 @@ function App() {
         <Route path='/' element={<Login/>}/>
         <Route path='/register' element={<Register/>}/>
         <Route path='/home' element={<Home/>}/>
+        <Route path="/business/:id" element={<BusinessProfile />} />
+        <Route path ="/bookings" element={<Bookings/>}/>
       </Routes>    
       </BrowserRouter>
       
