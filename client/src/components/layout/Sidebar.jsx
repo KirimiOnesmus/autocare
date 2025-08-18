@@ -53,7 +53,7 @@ const Sidebar = () => {
     {
       name: "Business Settings",
       icons: <RiFolderSettingsFill />,
-      path: "/business/dashboard/settings",
+      path: "/business/dashboard/management",
     },
     //Supper Admin Tabs
     {
