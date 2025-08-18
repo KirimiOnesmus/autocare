@@ -16,32 +16,70 @@ import { BiSupport } from "react-icons/bi";
 import { LuLogs } from "react-icons/lu";
 
 const Sidebar = () => {
- const navigate = useNavigate();
+  const navigate = useNavigate();
   const location = useLocation();
-const tabs = [
-  { name: "Overview", icons: <AiFillDashboard />, path: "/business/dashboard" },
-   //Business Dashboard Tabs
-  { name: "Bookings", icons: <BsCalendar2Date />, path: "/business/dashboard/bookings" },
-  { name: "Services", icons: <MdMiscellaneousServices />, path: "/business/dashboard/services" },
-  { name: "Customers", icons: <MdPeople />, path: "/business/dashboard/customers" },
-  { name: "Staff", icons: <MdOutlineEngineering />, path: "/business/dashboard/staff" },
-  { name: "Reports", icons: <BiSolidReport />, path: "/business/dashboard/reports" },
-  { name: "Business Settings", icons: <RiFolderSettingsFill />, path: "/business/dashboard/settings" },
-  //Supper Admin Tabs
-  { name: "Businesses", icons: <MdBusinessCenter />, path: "/business/dashboard/businesses" },
-  { name: "Users", icons: <FaUsers />, path: "/business/dashboard/users" },
-  { name: "Support", icons: <BiSupport />, path: "/business/dashboard/support" },
-  { name: "Logs", icons: <LuLogs />, path: "/business/dashboard/logs" },
-  { name: "Logout", icons: <AiOutlineLogout />, path: "/logout" },
-];
+  const tabs = [
+    {
+      name: "Overview",
+      icons: <AiFillDashboard />,
+      path: "/business/dashboard",
+    },
+    //Business Dashboard Tabs
+    {
+      name: "Bookings",
+      icons: <BsCalendar2Date />,
+      path: "/business/dashboard/bookings",
+    },
+    {
+      name: "Services",
+      icons: <MdMiscellaneousServices />,
+      path: "/business/dashboard/services",
+    },
+    {
+      name: "Customers",
+      icons: <MdPeople />,
+      path: "/business/dashboard/customers",
+    },
+    {
+      name: "Staff",
+      icons: <MdOutlineEngineering />,
+      path: "/business/dashboard/staff",
+    },
+    {
+      name: "Reports",
+      icons: <BiSolidReport />,
+      path: "/business/dashboard/reports",
+    },
+    {
+      name: "Business Settings",
+      icons: <RiFolderSettingsFill />,
+      path: "/business/dashboard/settings",
+    },
+    //Supper Admin Tabs
+    {
+      name: "Businesses",
+      icons: <MdBusinessCenter />,
+      path: "/business/dashboard/businesses",
+    },
+    { name: "Users", icons: <FaUsers />, path: "/business/dashboard/users" },
+    {
+      name: "Support",
+      icons: <BiSupport />,
+      path: "/business/dashboard/support",
+    },
+    { name: "Logs", icons: <LuLogs />, path: "/business/dashboard/logs" },
+    { name: "Logout", icons: <AiOutlineLogout />, path: "/logout" },
+  ];
   return (
     <div>
-     
       <div className="flex flex-col md:flex-row min-h-screen">
         <div className="hidden md:block w-16 md:w-64 bg-gray-50 py-2 sticky top-[72px] h-[calc(100vh-72px)] overflow-y-auto">
           <ul className="space-y-2">
-           {tabs.map((tab, index) => {
-            const isActive = location.pathname.startsWith(tab.path);
+            {tabs.map((tab, index) => {
+              const isActive =
+                tab.path === "/business/dashboard"
+                  ? location.pathname === tab.path
+                  : location.pathname.startsWith(tab.path);
               return (
                 <li
                   key={index}
@@ -61,12 +99,12 @@ const tabs = [
             })}
           </ul>
         </div>
-    
+
         {/* Small Screens */}
 
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-50 shadow-inner">
-            <ul className="flex justify-around py-2">
-                {tabs.map((tab, index) => {
+          <ul className="flex justify-around py-2">
+            {tabs.map((tab, index) => {
               const isActive = location.pathname === tab.path;
               return (
                 <li
@@ -80,7 +118,7 @@ const tabs = [
                 </li>
               );
             })}
-            </ul>
+          </ul>
         </div>
       </div>
     </div>

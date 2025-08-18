@@ -1,3 +1,4 @@
-export {default} from './BusinessDashboard';
+export {default as BusinessDashboard} from './BusinessDashboard';
 export {default as BusinessOverview} from './BusinessOverview';
-// export {default as BusinessSettings} from './BusinessSettings';
+export {default as ManageBookings} from './ManageBookings';
+export {default as ManageServices} from './ManageServices';
