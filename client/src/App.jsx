@@ -2,7 +2,7 @@ import React from "react";
 import { Login, Register } from "./pages/auth";
 import { Home, BusinessProfile, Bookings } from "./pages/customer";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import {BusinessDashboard,ManageBookings, ManageServices} from "./pages/business";
+import {BusinessDashboard,ManageBookings, ManageServices,ManageCustomers,ManageStaff} from "./pages/business";
 import Overview from "./components/layout/Overview";
 // import ManageBookings from "./pages/business/ManageBookings";
 import "./index.css";
@@ -21,6 +21,9 @@ function App() {
           <Route index element={<Overview />} />
           <Route path="bookings" element={<ManageBookings />} />
           <Route path="services" element={<ManageServices />} />
+          <Route path="customers" element={<ManageCustomers />} />
+          <Route path="staff" element={<ManageStaff />} />
+          {/* Add other business dashboard routes here */}
         </Route>
       </Routes>
     </BrowserRouter>
