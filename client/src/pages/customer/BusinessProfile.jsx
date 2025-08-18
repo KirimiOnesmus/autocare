@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Header from "../../components/layout/Header";
 import BookService from "./BookService";
+import HomeButton from "../../components/layout/HomeButton";
 
 import {
   MdOutlineLocalCarWash,
@@ -162,7 +163,7 @@ const BusinessProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 relative">
       <Header />
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="relative h-80">
@@ -264,7 +265,7 @@ const BusinessProfile = () => {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-4 px-6 font-medium text-sm transition-colors ${
+                className={`flex-1 py-4 px-6 font-medium text-sm transition-colors hover:cursor-pointer ${
                   activeTab === tab
                     ? "text-blue-600  border-blue-600 bg-blue-50"
                     : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
@@ -486,6 +487,8 @@ const BusinessProfile = () => {
     }}
     />
    )}
+   <HomeButton className="fixed bottom-6 right-6 z-50 shadow-lg hover:scale-105 transition-transform" />
+    
     </div>
   );
 };
