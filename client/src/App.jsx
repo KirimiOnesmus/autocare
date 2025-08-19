@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import {BusinessDashboard,ManageBookings, ManageServices,ManageCustomers,ManageStaff,BusinessManagement,BusinessReports} from "./pages/business";
 import Overview from "./components/layout/Overview";
 import { AdminOverview, Logs, Support, SystemUsers,BusinessPage } from "./pages/Admin";
+import { StaffLogin, Assignment } from "./pages/staff";
 // import ManageBookings from "./pages/business/ManageBookings";
 import "./index.css";
 
@@ -35,6 +36,9 @@ function App() {
           <Route path="support" element={<Support />} />
           <Route path="users" element={<SystemUsers />} />
         </Route>
+        {/* Staff */}
+        <Route path="/staff/login" element={<StaffLogin />} />
+        <Route path="/staff/assignment" element={<Assignment />} />
       </Routes>
     </BrowserRouter>
   );
