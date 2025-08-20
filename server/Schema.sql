@@ -1,0 +1,16 @@
+create table users(
+id INT PRIMARY KEY AUTO_INCREMENT,
+name VARCHAR(100) NOT NULL,
+email VARCHAR(100) NOT NULL UNIQUE,
+phone VARCHAR(20) NULL UNIQUE,
+password VARCHAR(255) NOT NULL,
+role ENUM ('customer','owner', 'staff', 'manager', 'super_admin') NOT NULL DEFAULT 'customer',
+email_verified BOOLEAN DEFAULT FALSE,
+phone_verified BOOLEAN DEFAULT FALSE,
+is_active BOOLEAN DEFAULT TRUE,
+profile_image VARCHAR(255) NULL,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+last_login TIMESTAMP NULL
+)
+

@@ -10,7 +10,7 @@ const dummyAssignments = [
     service: "Engine Diagnosis",
     date: "2025-08-15",
     time: "10:00 AM",
-    status: "InProgress",
+    status: "In Progress",
   },
   {
     id: "ASG002",
@@ -18,7 +18,7 @@ const dummyAssignments = [
     service: "Car Wash",
     date: "2025-08-08",
     time: "02:00 PM",
-    status: "InProgress",
+    status: "In Progress",
   },
   {
     id: "ASG003",
@@ -31,7 +31,7 @@ const dummyAssignments = [
 ];
 
 const Assignment = () => {
-  const [activeTab, setActiveTab] = useState("InProgress");
+  const [activeTab, setActiveTab] = useState("In Progress");
 
   const filteredAssignments = dummyAssignments.filter(
     (asg) => asg.status === activeTab
@@ -57,7 +57,7 @@ const Assignment = () => {
       </div>
 
       <div className="flex gap-4 mb-6 border-b border-gray-200 pb-2">
-        {["InProgress", "Completed"].map((tab) => (
+        {["In Progress", "Completed"].map((tab) => (
           <p
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -67,7 +67,7 @@ const Assignment = () => {
                 : "text-gray-600 hover:text-blue-600"
             }`}
           >
-            {tab === "InProgress" ? "In Progress" : "Completed"}
+            {tab === "In Progress" ? "In Progress" : "Completed"}
           </p>
         ))}
       </div>
@@ -105,7 +105,7 @@ const Assignment = () => {
                 <td className="px-6 py-4">{item.status}</td>
                 <td className="px-6 py-4 space-x-4 text-lg">
                   <button className="text-blue-600 hover:underline cursor-pointer"><FaEye title="View Details" /></button>
-                  {item.status === "InProgress" && (
+                  {item.status === "In Progress" && (
                     <>
                       <button className="text-yellow-600 hover:underline cursor-pointer">
                        <LuCalendarClock title="Reschedule" />

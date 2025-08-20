@@ -2,12 +2,27 @@ import React from "react";
 import { Login, Register } from "./pages/auth";
 import { Home, BusinessProfile, Bookings } from "./pages/customer";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import {BusinessDashboard,ManageBookings, ManageServices,ManageCustomers,ManageStaff,BusinessManagement,BusinessReports} from "./pages/business";
+import {
+  BusinessDashboard,
+  ManageBookings,
+  ManageServices,
+  ManageCustomers,
+  ManageStaff,
+  BusinessManagement,
+  BusinessReports,
+} from "./pages/business";
 import Overview from "./components/layout/Overview";
-import { AdminOverview, Logs, Support, SystemUsers,BusinessPage } from "./pages/Admin";
+import {
+  AdminOverview,
+  Logs,
+  Support,
+  SystemUsers,
+  BusinessPage,
+} from "./pages/Admin";
 import { StaffLogin, Assignment } from "./pages/staff";
 // import ManageBookings from "./pages/business/ManageBookings";
 import "./index.css";
+import { ToastContainer } from "react-toastify";
 
 function App() {
   return (
@@ -40,6 +55,13 @@ function App() {
         <Route path="/staff/login" element={<StaffLogin />} />
         <Route path="/staff/assignment" element={<Assignment />} />
       </Routes>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </BrowserRouter>
   );
 }
