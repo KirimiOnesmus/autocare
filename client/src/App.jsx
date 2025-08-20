@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Login, Register } from "./pages/auth";
 import { Home, BusinessProfile, Bookings } from "./pages/customer";
@@ -20,7 +21,6 @@ import {
   BusinessPage,
 } from "./pages/Admin";
 import { StaffLogin, Assignment } from "./pages/staff";
-// import ManageBookings from "./pages/business/ManageBookings";
 import "./index.css";
 import { ToastContainer } from "react-toastify";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -29,9 +29,11 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Auth */}
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
+        {/* Customer Routes */}
         <Route
           path="/home"
           element={
@@ -40,7 +42,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/business/:id"
           element={
@@ -49,7 +50,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/bookings"
           element={
@@ -59,16 +59,16 @@ function App() {
           }
         />
 
+        {/* Business Dashboard */}
         <Route
           path="/business/dashboard"
           element={
-            <ProtectedRoute allowedRoles={["owner", "manager", "super_admin"]}>
+            <ProtectedRoute allowedRoles={["owner", "manager"]}>
               <BusinessDashboard />
             </ProtectedRoute>
           }
         >
           <Route index element={<Overview />} />
-          {/* Business dashboard routes here */}
           <Route path="bookings" element={<ManageBookings />} />
           <Route path="services" element={<ManageServices />} />
           <Route path="customers" element={<ManageCustomers />} />
@@ -77,48 +77,22 @@ function App() {
           <Route path="reports" element={<BusinessReports />} />
         </Route>
 
-        {/* Admin dashboard routes here */}
-        <Route path="admin" element={<AdminOverview />} />
+        {/* Admin Dashboard */}
         <Route
           path="/admin"
           element={
-            <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
-              <BusinessDashboard />
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+               <BusinessDashboard />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/admin/businesses"
-          element={
-            <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
-              <BusinessPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/logs"
-          element={
-            <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
-              <Logs />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/support"
-          element={
-            <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
-              <Support />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/users"
-          element={
-            <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
-              <SystemUsers />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route index element={<AdminOverview />} />
+          <Route path="overview" element={<AdminOverview />} />
+          <Route path="businesses" element={<BusinessPage />} />
+          <Route path="users" element={<SystemUsers />} />
+          <Route path="support" element={<Support />} />
+          <Route path="logs" element={<Logs />} />
+        </Route>
 
         {/* Staff */}
         <Route
@@ -130,6 +104,8 @@ function App() {
           }
         />
       </Routes>
+
+      {/* Toasts */}
       <ToastContainer
         position="top-right"
         autoClose={2000}
