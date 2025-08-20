@@ -18,58 +18,88 @@ import { LuLogs } from "react-icons/lu";
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const tabs = [
+
+const user = JSON.parse(sessionStorage.getItem("user"));
+const role = user?.role || "";
+  const allTabs  = [
     {
       name: "Overview",
       icons: <AiFillDashboard />,
       path: "/business/dashboard",
+      roles: ["owner", "manager", "super_admin"],
     },
     //Business Dashboard Tabs
     {
       name: "Bookings",
       icons: <BsCalendar2Date />,
       path: "/business/dashboard/bookings",
+      roles: ["owner", "manager"],
     },
     {
       name: "Services",
       icons: <MdMiscellaneousServices />,
       path: "/business/dashboard/services",
+      roles: ["owner", "manager"],
     },
     {
       name: "Customers",
       icons: <MdPeople />,
       path: "/business/dashboard/customers",
+        roles: ["owner", "manager"],
     },
     {
       name: "Staff",
       icons: <MdOutlineEngineering />,
       path: "/business/dashboard/staff",
+       roles: ["owner","manager"],
     },
     {
       name: "Reports",
       icons: <BiSolidReport />,
       path: "/business/dashboard/reports",
+       roles: ["owner"],
     },
     {
       name: "Business Settings",
       icons: <RiFolderSettingsFill />,
       path: "/business/dashboard/management",
+       roles: ["owner"],
     },
     //Supper Admin Tabs
     {
       name: "Businesses",
       icons: <MdBusinessCenter />,
       path: "/business/dashboard/businesses",
+      roles: ["super_admin"],
     },
-    { name: "Users", icons: <FaUsers />, path: "/business/dashboard/users" },
+    { 
+      name: "Users",
+       icons: <FaUsers />, 
+       path: "/business/dashboard/users",
+       roles: ["super_admin"],
+   },
     {
       name: "Support",
       icons: <BiSupport />,
       path: "/business/dashboard/support",
+      roles: ["super_admin"],
     },
-    { name: "Logs", icons: <LuLogs />, path: "/business/dashboard/logs" },
-    { name: "Logout", icons: <AiOutlineLogout />, path: "/logout" },
+    { 
+      name: "Logs", 
+      icons: <LuLogs />, 
+      path: "/business/dashboard/logs",
+      roles: ["super_admin"],
+
+     },
+    { 
+      name: "Logout", 
+      icons: <AiOutlineLogout />,
+       path: "/logout" ,
+       roles: ["business_owner", "manager", "staff", "super_admin"]
+}
   ];
+    // Filter tabs based on role
+  const tabs = allTabs.filter((tab) => tab.roles.includes(role));
   return (
     <div>
       <div className="flex flex-col md:flex-row min-h-screen">

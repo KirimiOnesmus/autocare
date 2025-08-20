@@ -23,6 +23,7 @@ import { StaffLogin, Assignment } from "./pages/staff";
 // import ManageBookings from "./pages/business/ManageBookings";
 import "./index.css";
 import { ToastContainer } from "react-toastify";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
   return (
@@ -30,11 +31,42 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/business/:id" element={<BusinessProfile />} />
-        <Route path="/bookings" element={<Bookings />} />
 
-        <Route path="/business/dashboard" element={<BusinessDashboard />}>
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute allowedRoles={["customer"]}>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/business/:id"
+          element={
+            <ProtectedRoute allowedRoles={["customer"]}>
+              <BusinessProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/bookings"
+          element={
+            <ProtectedRoute allowedRoles={["customer"]}>
+              <Bookings />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/business/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["owner", "manager", "super_admin"]}>
+              <BusinessDashboard />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<Overview />} />
           {/* Business dashboard routes here */}
           <Route path="bookings" element={<ManageBookings />} />
@@ -43,17 +75,60 @@ function App() {
           <Route path="staff" element={<ManageStaff />} />
           <Route path="management" element={<BusinessManagement />} />
           <Route path="reports" element={<BusinessReports />} />
-          {/* Admin dashboard routes here */}
-          {/* <Route path="admin" element={<AdminOverview />} /> */}
-          <Route path="admin" element={<AdminOverview />} />
-          <Route path="businesses" element={<BusinessPage />} />
-          <Route path="logs" element={<Logs />} />
-          <Route path="support" element={<Support />} />
-          <Route path="users" element={<SystemUsers />} />
         </Route>
+
+        {/* Admin dashboard routes here */}
+        <Route path="admin" element={<AdminOverview />} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
+              <BusinessDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/businesses"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
+              <BusinessPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/logs"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
+              <Logs />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/support"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
+              <Support />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
+              <SystemUsers />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Staff */}
-        <Route path="/staff/login" element={<StaffLogin />} />
-        <Route path="/staff/assignment" element={<Assignment />} />
+        <Route
+          path="/staff/assignment"
+          element={
+            <ProtectedRoute allowedRoles={["staff"]}>
+              <Assignment />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
       <ToastContainer
         position="top-right"

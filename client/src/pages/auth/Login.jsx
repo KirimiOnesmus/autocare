@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import background from "../../assets/background.jpg";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../components/config/api";
 
@@ -34,18 +34,39 @@ const Login = () => {
     }
 
     const dataToSend = {
-      email: formData.email.trim().toLocaleLowerCase(),
+      email: formData.email.trim().toLowerCase(),
       password: formData.password,
     };
+
     try {
       const response = await api.post("/auth/login", dataToSend);
-      sessionStorage.setItem("token", response.data.token);
+      const { token, user } = response.data;
+      sessionStorage.setItem("token", token);
+      sessionStorage.setItem("user", JSON.stringify(user));
+
       toast.success("Logging in. Welcome back...");
-      setTimeout(() => {
+
+      if (user.role === "customer") {
+        navigate("/home");
+      } else if (["owner", "manager"].includes(user.role)) {
         navigate("/business/dashboard");
-      }, 2000);
+      } else if (["admin", "super_admin"].includes(user.role)) {
+        navigate("/admin");
+      } else if (user.role === "staff") {
+        navigate("/staff/assignment");
+      } else {
+        toast.error("Unauthorized role!");
+      }
     } catch (error) {
-      console.log("Failed to log in", error);
+      if (error.response) {
+        console.error(
+          "Login failed:",
+          error.response.status,
+          error.response.data
+        );
+      } else {
+        console.error("Login error:", error.message);
+      }
       toast.error("Failed to log in..!");
     } finally {
       setLoading(false);

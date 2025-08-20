@@ -6,4 +6,4 @@ const AdminOverview = () => {
   )
 }
 
-export default AdminOverview
+export default AdminOverview 
