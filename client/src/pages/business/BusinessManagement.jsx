@@ -33,7 +33,7 @@ const BusinessManagement = () => {
       }
     };
     fetchBusinesses();
-  }, []);
+  }, [userId]);
 
   //select business
 
@@ -44,12 +44,34 @@ const BusinessManagement = () => {
       try {
         const res = await api.get(`/business/business/${businessId}`);
         setSelectedBusiness(res.data);
+
+        const fetchedHours = res.data.hours || [];
+        const normalizedHours = daysOfWeek.map((day) => {
+          const existing = fetchedHours.find(
+            (h) => h.day_of_week.toLowerCase() === day
+          );
+          return existing
+            ? {
+                ...existing,
+                is_closed:
+                  existing.open_time === null || existing.close_time === null,
+              }
+            : {
+                day_of_week: day,
+                open_time: "09:00",
+                close_time: "17:00",
+                is_closed: true,
+              };
+        });
+        setHours(normalizedHours);
+
+        console.log(" Business Data:", res.data);
       } catch (error) {
         console.log("Error fetching business details:", error);
         toast.error("Failed to load business details!");
       }
     } else {
-      setSelectedBusiness(null);
+      setSelectedBusiness({});
     }
   };
   const handleInputChange = (field, value) => {
@@ -59,7 +81,7 @@ const BusinessManagement = () => {
     }));
   };
   const handleSave = async () => {
-    if (!selectedBusiness) return;
+    if (!selectedBusiness?.id) return
     try {
       console.log("Sending this to backend:", selectedBusiness);
       await api.put(
@@ -83,19 +105,36 @@ const BusinessManagement = () => {
       day_of_week: day,
       open_time: "09:00",
       close_time: "17:00",
-      is_closed: false,
+      is_closed: true,
     }))
   );
   const handleChange = (day, field, value) => {
     setHours((prev) =>
       prev.map((h) => (h.day_of_week === day ? { ...h, [field]: value } : h))
     );
+    
   };
+  
+const formatTime = (time) => (time.length === 5 ? `${time}:00` : time);
+const handleSaveHours = async () => {
+  if (!selectedBusiness?.id) return;
+  try {
+    const formattedHours = hours.map((h) => ({
+      ...h,
+      open_time: h.is_closed ? null : formatTime(h.open_time),
+      close_time: h.is_closed ? null : formatTime(h.close_time),
+    }));
 
-  const handleSubmit = () => {
-    console.log("Business Hours Saved:", hours);
-    alert("Dummy save — check console for output ✅");
-  };
+    await api.put(`/business/business-hours/${selectedBusiness.id}`, {
+      hours: formattedHours,
+    });
+
+    toast.success("Hours Updated Successfully!");
+  } catch (error) {
+    console.log("Failed to update hours", error);
+    toast.error("Failed to save hours..!");
+  }
+};
 
   return (
     <div className="p-6 bg-gray-50 ">
@@ -111,7 +150,7 @@ const BusinessManagement = () => {
           onChange={handleBusinessChange}
           className="border-gray-300 rounded-md p-2 shadow-sm outline-none focus:ring focus:ring-blue-500"
         >
-          <option value="#">Select Business</option>
+          <option value="">Select Business</option>
           {businesses.map((b) => (
             <option key={b.id} value={b.id}>
               {b.business_name}
@@ -157,7 +196,12 @@ const BusinessManagement = () => {
               </label>
               <input
                 type="file"
-                onChange={(e) => handleInputChange("logo", e.target.files[0])}
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    setSelectedBusiness((prev) => ({ ...prev, logo: file }));
+                  }
+                }}
                 placeholder="Enter business name"
                 className="mt-1 block w-full border-gray-300 rounded-md p-2 shadow-sm outline-none focus:ring focus:ring-blue-500"
               />
@@ -352,7 +396,7 @@ const BusinessManagement = () => {
 
         <div className="mt-4 flex justify-end">
           <button
-            onClick={handleSubmit}
+            onClick={handleSaveHours}
             className="bg-blue-600  text-white px-4 py-2 rounded-md hover:cursor-pointer
            hover:bg-white hover:text-blue-500 hover:border border-blue-500 transition-all"
           >

@@ -1,28 +1,49 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import StaffManagement from "../../components/business/StaffManagement";
+import api from "../../components/config/api";
+import { toast } from "react-toastify";
 
-const dummyStaff = [
-  { id: 1, name: "Alice Johnson", email: "alice.johnson@example.com", role: "Manager", phone: "+254 700 123456" },
-  { id: 2, name: "Brian Mwangi", email: "brian.mwangi@example.com", role: "Mechanic", phone: "+254 701 234567" },
-  { id: 3, name: "Catherine Njeri", email: "catherine.njeri@example.com", role: "Painter", phone: "+254 702 345678" },
-  { id: 4, name: "David Kimani", email: "david.kimani@example.com", role: "Detailer", phone: "+254 703 456789" },
-  { id: 5, name: "Emily Otieno", email: "emily.otieno@example.com", role: "Mechanic", phone: "+254 704 567890" },
-  { id: 6, name: "Frank Oduor", email: "frank.odour@example.com", role: "Manager", phone: "+254 705 678901" },
-  { id: 7, name: "Grace Wanjiku", email: "grace.wanjiku@example.com", role: "Detailer", phone: "+254 706 789012" },
-  { id: 8, name: "Henry Mutua", email: "henry.mutua@example.com", role: "Painter", phone: "+254 707 890123" },
-  { id: 9, name: "Irene Chebet", email: "irene.chebet@example.com", role: "Mechanic", phone: "+254 708 901234" },
-  { id: 10, name: "James Kariuki", email: "james.kariuki@example.com", role: "Detailer", phone: "+254 709 012345" },
-];
+
 
 const ManageStaff = () => {
-  const [staff, setStaff] = useState(dummyStaff);
+  const [staff, setStaff] = useState([]);
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState(null);
-
   const staffPerPage = 5;
+
+  useEffect(()=>{
+    const fetchStaff =async()=>{
+      try {
+        const user = JSON.parse(sessionStorage.getItem("user"));
+        const userId = user?.id;
+        if(!userId) return;
+
+        //fetch all business for this user
+        const businessRes = await api.get(`/business/owners-businesses/${userId}`);
+        const businesses = businessRes.data;
+        if(businesses.length===0) return;
+ 
+
+
+
+        //fetch staff for all businesses
+        const res = await api.get(`/staff/get-staff/${userId}`);
+        setStaff(res.data);
+        console.log(userId)
+      } catch (error) {
+        console.log("Error fetching staff info:",error);
+        toast.error("Failed to fetch staff")
+      }
+    };
+    fetchStaff();
+  },[])
+
+
+
+
 
   // Filter staff by name and role
   const filteredStaff = staff.filter(s => {

@@ -40,3 +40,33 @@ CREATE TABLE businesses (
     FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
+CREATE TABLE business_hours (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  business_id INT NOT NULL,
+  day_of_week ENUM('monday','tuesday','wednesday','thursday','friday','saturday','sunday') NOT NULL,
+  open_time TIME NOT NULL,
+  close_time TIME NOT NULL,
+  is_closed BOOLEAN DEFAULT FALSE,
+  FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE staff (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    business_id INT NOT NULL,
+    login_id VARCHAR(50) UNIQUE,
+    business_staff_no INT NOT NULL,           -- staff ID unique inside business
+    role VARCHAR(50) NOT NULL,
+    national_id VARCHAR(20) NOT NULL,
+    kra_pin VARCHAR(50) NOT NULL,
+    pay_commission DECIMAL(5,2),              -- % of service pay
+    hire_date DATE NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    max_concurrent_jobs INT DEFAULT 3,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE,
+    UNIQUE (business_id, business_staff_no)   -- ensures per-business unique staff number
+);

@@ -198,15 +198,23 @@ const ownerFetchAllBusinesses = async (req, res) => {
 const getBusinessById = async (req, res) => {
   const businessId = req.params.businessId;
   try {
-    const [rows] = await db.query(
+    const [business] = await db.query(
       `
       SELECT * FROM businesses WHERE id = ?`,
       [businessId]
     );
-    if (rows.length === 0) {
+    if (business.length === 0) {
       return res.status(404).json({ message: "No business found" });
     }
-    res.status(200).json(rows[0]);
+    const [hours] = await db.query(
+      `SELECT id, day_of_week, open_time, close_time FROM business_hours WHERE business_id = ? 
+      ORDER BY FIELD (day_of_week, 'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday')`,
+      [businessId]
+    );
+    res.status(200).json({
+            ...business[0],
+      hours,
+    });
   } catch (error) {
     console.error("Failed to fetch business:", error);
     res.status(500).json({ message: "Failed to fetch the business" });
@@ -239,7 +247,7 @@ const ownerUpdateBusiness = async (req, res) => {
       `UPDATE businesses 
        SET business_name = ?, email = ?, phone = ?, city = ?, 
            description = ?, license_number = ?, location = ?, logo = ?, 
-           tax_number = ?, business_gallery = ?
+           tax_number = ?, business_gallery = ? 
        WHERE id = ?`,
       [
         business_name,
@@ -267,6 +275,40 @@ const ownerUpdateBusiness = async (req, res) => {
     res.status(500).json({ message: "Falied to Update the business profile." });
   }
 };
+//business hours
+const busines_hours= async(req,res)=>{
+const {businessId} = req.params;
+const {hours} = req.body;
+
+if(!Array.isArray(hours) || hours.length ===0){
+  return res.status(400).json({message:"Invalid hours payload"});
+}
+try {
+  await db.query("DELETE FROM business_hours WHERE business_id = ?",[businessId])
+
+  //insert new rows
+  const values = hours.map((h)=>[
+    businessId,
+    h.day_of_week,
+    h.open_time,
+    h.close_time,
+    h.is_closed ? 1 : 0,
+  ]);
+  await db.query(
+         `INSERT INTO business_hours (business_id, day_of_week, open_time, close_time, is_closed)
+       VALUES ?`,
+      [values]
+  );
+  res.json({message:"Business hours updated successfully"});
+} catch (error) {
+  console.error("Error updating the business hours:", error);
+  res.status(500).json({
+    message:"Failed to update business hours..."
+    });
+  
+}
+
+}
 
 module.exports = {
   businessRegistration,
@@ -274,5 +316,6 @@ module.exports = {
   adminUpdateBusiness,
   ownerFetchAllBusinesses,
   getBusinessById,
-  ownerUpdateBusiness
+  ownerUpdateBusiness,
+  busines_hours
 };
