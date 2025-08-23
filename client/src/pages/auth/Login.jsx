@@ -44,6 +44,7 @@ const Login = () => {
       sessionStorage.setItem("token", token);
       sessionStorage.setItem("user", JSON.stringify(user));
 
+
       toast.success("Logging in. Welcome back...");
 
       if (user.role === "customer") {

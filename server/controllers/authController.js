@@ -56,6 +56,8 @@ const loginUser = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
+    //fetch all businesses related to the user
+    const [businesses] =await db.query("SELECT * FROM businesses WHERE owner_id = ?",[user.id]);
 
     res.status(200).json({
       message: "Login Successful",
@@ -66,6 +68,7 @@ const loginUser = async (req, res) => {
         email: user.email,
         role: user.role,
       },
+      businesses
     });
   } catch (error) {
     console.error("Login error:", error);

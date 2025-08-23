@@ -1,47 +1,48 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { MdDeleteSweep, MdLocalPrintshop } from "react-icons/md";
-
-const roles = ["admin", "staff", "customer"];
-const statuses = ["active", "inactive"];
-
-// Generate 30 dummy users
-const generateDummyUsers = () => {
-  return Array.from({ length: 30 }, (_, index) => ({
-    id: index + 1,
-    name: `User ${index + 1}`,
-    email: `user${index + 1}@example.com`,
-    phone: `0712${String(index + 100000).slice(-6)}`,
-    role: roles[Math.floor(Math.random() * roles.length)],
-    status: statuses[Math.floor(Math.random() * statuses.length)],
-  }));
-};
-
-const ITEMS_PER_PAGE = 10;
-
+import api from "../../components/config/api";
+import { toast } from "react-toastify";
+const ITEMS_PER_PAGE = 5;
 const SystemUsers = () => {
-  const [users] = useState(generateDummyUsers());
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [users, setUsers] = useState([]);
+
+  const fetchUsers = async () => {
+    try {
+      const res = await api.get(`/users/getAllUsers`);
+      setUsers(res.data);
+      console.log(res.data);
+    } catch (error) {
+      console.log("Failed to fetch the system users:", error);
+      toast.error("Failed to fetch the system users");
+    }
+  };
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   // Filtering & search
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       const matchesSearch =
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.phone.includes(searchTerm);
+        user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (user.phone || "").includes(searchTerm);
 
       const matchesRole = filterRole ? user.role === filterRole : true;
-      const matchesStatus = filterStatus ? user.status === filterStatus : true;
+      const matchesStatus = filterStatus !== "" 
+      ? Number(user.is_active)=== Number(filterStatus)
+       : true;
 
       return matchesSearch && matchesRole && matchesStatus;
     });
   }, [users, searchTerm, filterRole, filterStatus]);
 
   // Pagination logic
-  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / ITEMS_PER_PAGE));
   const paginatedUsers = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredUsers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
@@ -95,14 +96,15 @@ const SystemUsers = () => {
               className="p-2 border border-gray-300 rounded-md outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">All</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="1">Active</option>
+              <option value="0">Inactive</option>
             </select>
           </div>
           <div>
             <MdLocalPrintshop
               title="Print"
-              className="bg-blue-600 text-white cursor-pointer hover:bg-white hover:text-blue-600 hover:border border-blue-600 rounded-full p-1 text-3xl sm:text-4xl transition-colors"
+              className="bg-blue-600 text-white cursor-pointer hover:bg-white
+             hover:text-blue-600 hover:border border-blue-600 rounded-full p-1 text-3xl sm:text-4xl transition-colors"
             />
           </div>
         </div>
@@ -130,7 +132,11 @@ const SystemUsers = () => {
                   <td className="py-2 px-4">{user.email}</td>
                   <td className="py-2 px-4">{user.phone}</td>
                   <td className="py-2 px-4 capitalize">{user.role}</td>
-                  <td className="py-2 px-4 capitalize">{user.status}</td>
+                  <td className={`py-2 px-4 capitalize ${
+                    user.is_active === 1 ?"text-green-600":"text-gray-700"
+                  }`}>
+                    {user.is_active === 1 ? "Active" : "In active"}
+                    </td>
                   <td className="py-2 px-4 ">
                     <button className="text-blue-500 hover:underline">
                       View

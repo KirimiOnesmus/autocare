@@ -26,9 +26,9 @@ const BusinessPage = () => {
     try {
       const res = await api.get("/business/get-all-businesses");
       setBusinesses(res.data);
-      console.log(res.data);
+      // console.log(res.data);
     } catch (error) {
-      console.log("Faild to fetch buusiness list", error);
+      console.log("Faild to fetch business list", error);
       toast.error("Failed fetching the list of businesses");
     }
   };

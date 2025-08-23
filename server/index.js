@@ -20,10 +20,12 @@ app.get("/", (req,res)=>{
 
 //routes
 const authRoutes =require("./routes/authRoutes");
-const businessRoutes = require("./routes/businessRoutes")
+const businessRoutes = require("./routes/businessRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 app.use("/api/auth",authRoutes);
 app.use("/api/business",businessRoutes);
+app.use("/api/users",userRoutes);
 
 
 

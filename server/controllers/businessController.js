@@ -178,4 +178,101 @@ const adminUpdateBusiness = async (req, res) => {
   }
 };
 
-module.exports = { businessRegistration, fetchBusiness, adminUpdateBusiness };
+//business owner
+const ownerFetchAllBusinesses = async (req, res) => {
+  const userId = req.params.id;
+  const owner_id = userId;
+  try {
+    const [rows] = await db.query(
+      `SELECT * FROM businesses WHERE owner_id = ?`,
+      [owner_id]
+    );
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error("Failed tofetch businesses:", error);
+    req.status(500).json({
+      message: "Falied to fetch the businesses registered to the owner",
+    });
+  }
+};
+const getBusinessById = async (req, res) => {
+  const businessId = req.params.businessId;
+  try {
+    const [rows] = await db.query(
+      `
+      SELECT * FROM businesses WHERE id = ?`,
+      [businessId]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "No business found" });
+    }
+    res.status(200).json(rows[0]);
+  } catch (error) {
+    console.error("Failed to fetch business:", error);
+    res.status(500).json({ message: "Failed to fetch the business" });
+  }
+};
+const ownerUpdateBusiness = async (req, res) => {
+  const businessId = req.params.businessId;
+
+  const {
+    business_name,
+    email,
+    phone,
+    city,
+    description,
+    license_number,
+    location,
+    logo,
+    tax_number,
+    business_gallery,
+  } = req.body;
+
+  try {
+    const [existing] = await db.query(`SELECT * FROM businesses WHERE id = ?`, [
+      businessId,
+    ]);
+    if (!existing.length) {
+      return res.status(404).json({ message: "Business not found" });
+    }
+    const [result] = await db.query(
+      `UPDATE businesses 
+       SET business_name = ?, email = ?, phone = ?, city = ?, 
+           description = ?, license_number = ?, location = ?, logo = ?, 
+           tax_number = ?, business_gallery = ?
+       WHERE id = ?`,
+      [
+        business_name,
+        email,
+        phone,
+        city,
+        description,
+        license_number,
+        location,
+        logo,
+        tax_number,
+        business_gallery,
+        businessId,
+      ]
+    );
+    if (result.affectedRows === 0) {
+      return res
+        .status(400)
+        .json({ message: "No changes were made to the business profile" });
+    }
+
+    res.status(200).json({ message: "Business updated successfully" });
+  } catch (error) {
+    console.error("Failed to update business profile:", error);
+    res.status(500).json({ message: "Falied to Update the business profile." });
+  }
+};
+
+module.exports = {
+  businessRegistration,
+  fetchBusiness,
+  adminUpdateBusiness,
+  ownerFetchAllBusinesses,
+  getBusinessById,
+  ownerUpdateBusiness
+};
