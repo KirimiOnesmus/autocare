@@ -43,21 +43,31 @@ const StaffManagement = ({
       national_id: formData.get("national_id"),
       kra_pin: formData.get("kra_pin"),
       pay_commission: parseFloat(formData.get("pay_commission")),
-      hire_date: formData.get("hire_date"),
-      business_id: selectedBusinessId, 
+      business_id: selectedBusinessId,
       password: formData.get("password"),
-      // designation: formData.get("designation"), // optional display role
     };
+    if (!staffData) {
+      staff.hire_date = formData.get("hire_date");
+    }
     try {
-      const res = await api.post("/staff/register-staff", staff);
-      const data = res.data;
-      console.log("business id:", data)
-      toast.success("Staff registered successfully!" + data.login_id);
-      onSubmit({ ...staff, login_id: data.login_id });
+      let res;
+      if (staffData) {
+      console.log(staffData.staff_id)
+        res = await api.put(`/staff/update/${staffData.staff_id}`, staff);
+        toast.success("Staff updated successfully !");
+        onSubmit({ ...staffData, ...staff });
+      } else {
+        res = await api.post("/staff/register-staff", staff);
+        const data = res.data;
+        console.log("business id:", data);
+        toast.success("Staff registered successfully!" + data.login_id);
+        onSubmit({ ...staff, login_id: data.login_id });
+      }
+
       onClose();
     } catch (error) {
       console.log("Error registering staff:", error);
-      toast.error("Faliked to register the new staff. Try again later!");
+      toast.error("Failed to save the staff. Try again later!");
     }
 
     onSubmit(staff);
@@ -200,7 +210,7 @@ const StaffManagement = ({
               name="hire_date"
               type="date"
               defaultValue={staffData?.hire_date || ""}
-              required
+              required={!staffData}
               className="mt-1 block w-full outline-none border-gray-300 rounded-md p-2 shadow-sm focus:ring-1 focus:ring-blue-500"
             />
           </div>
@@ -211,18 +221,16 @@ const StaffManagement = ({
             </label>
             <input
               name="password"
-              type={showPassword ?"text":"password"}
+              type={showPassword ? "text" : "password"}
               placeholder="Set password for new staff"
               required={!staffData} // password required only for new staff
               className="mt-1 block w-full outline-none border-gray-300 rounded-md p-2 shadow-sm focus:ring-1 focus:ring-blue-500"
             />
-            <span onClick={
-              ()=>setShowPassword(!showPassword)
-            }
-            className="absolute top-12 right-3 transform -translate-y-1/2 text-gray-500 hover:cursor-pointer hover:text-blue-600"
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute top-12 right-3 transform -translate-y-1/2 text-gray-500 hover:cursor-pointer hover:text-blue-600"
             >
-              {showPassword ? <IoMdEyeOff size={20} /> :  <IoMdEye size={20} /> }
-              
+              {showPassword ? <IoMdEyeOff size={20} /> : <IoMdEye size={20} />}
             </span>
           </div>
 

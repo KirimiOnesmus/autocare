@@ -36,7 +36,7 @@ CREATE TABLE businesses (
     subscription_plan ENUM('basic','premium', 'enterprise') DEFAULT 'basic',
     subscription_expires_at DATE NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updateed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
@@ -70,3 +70,46 @@ CREATE TABLE staff (
     FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE,
     UNIQUE (business_id, business_staff_no)   -- ensures per-business unique staff number
 );
+
+
+CREATE TABLE services (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    business_id INT NOT NULL,
+    category_id INT NULL,
+    service_name VARCHAR(100) NOT NULL,
+    description TEXT,
+    duration INT NOT NULL, -- store in minutes instead of TIME for flexibility
+    price DECIMAL(10,2) NOT NULL, -- better than INT for money values
+    status ENUM('active', 'inactive') DEFAULT 'active',
+    subscription_type ENUM('basic', 'premium') DEFAULT 'basic',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES service_categories(id) ON DELETE SET NULL
+);
+
+-- service categories
+CREATE TABLE service_categories (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT
+);
+
+
+-- CREATE TABLE bookings (
+--     id INT PRIMARY KEY AUTO_INCREMENT,
+--     customer_id INT NOT NULL,
+--     business_id INT NOT NULL,
+--     service_id INT NOT NULL,
+--     staff_id INT NULL, -- assigned later (if needed)
+--     booking_time DATETIME NOT NULL,
+--     status ENUM('pending','confirmed','in_progress','completed','cancelled') DEFAULT 'pending',
+--     notes TEXT,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--     FOREIGN KEY (customer_id) REFERENCES users(id) ON DELETE CASCADE,
+--     FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE,
+--     FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE,
+--     FOREIGN KEY (staff_id) REFERENCES staff(id) ON DELETE SET NULL
+-- );
+

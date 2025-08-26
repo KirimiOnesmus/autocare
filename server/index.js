@@ -23,11 +23,13 @@ const authRoutes =require("./routes/authRoutes");
 const businessRoutes = require("./routes/businessRoutes");
 const userRoutes = require("./routes/userRoutes");
 const staffRoutes = require("./routes/staffRoutes");
+const servicesRoutes = require( "./routes/servicesRoutes")
 
 app.use("/api/auth",authRoutes);
 app.use("/api/business",businessRoutes);
 app.use("/api/users",userRoutes);
 app.use("/api/staff", staffRoutes);
+app.use("/api/service", servicesRoutes);
 
 
 

@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import StaffManagement from "../../components/business/StaffManagement";
 import api from "../../components/config/api";
 import { toast } from "react-toastify";
+import { CiEdit } from "react-icons/ci";
+import { MdDeleteOutline } from "react-icons/md";
+import { ImSwitch } from "react-icons/im";
 
 const ManageStaff = () => {
   const [staff, setStaff] = useState([]);
@@ -40,17 +43,17 @@ const ManageStaff = () => {
   }, []);
 
   // Filter staff by name and role
- const filteredStaff = staff.filter(s => {
-  const staffName = s.staff_name || s.name || "";  
-  const proffession = s.proffession || "";
+  const filteredStaff = staff.filter((s) => {
+    const staffName = s.staff_name || s.name || "";
+    const proffession = s.proffession || "";
 
-  const matchesSearch =
-    staffName.toLowerCase().includes(search.toLowerCase()) ||
-    proffession.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch =
+      staffName.toLowerCase().includes(search.toLowerCase()) ||
+      proffession.toLowerCase().includes(search.toLowerCase());
 
-  const matchesRole = filterRole === "All" || proffession === filterRole;
-  return matchesSearch && matchesRole;
-});
+    const matchesRole = filterRole === "All" || proffession === filterRole;
+    return matchesSearch && matchesRole;
+  });
 
   // Pagination
   const indexOfLastStaff = currentPage * staffPerPage;
@@ -58,7 +61,7 @@ const ManageStaff = () => {
   const currentStaff = filteredStaff.slice(indexOfFirstStaff, indexOfLastStaff);
   const totalPages = Math.ceil(filteredStaff.length / staffPerPage);
 
-  // Handle add/edit staff submit
+
   const handleSubmit = (newStaff) => {
     setStaff((prev) => {
       const exists = prev.find((s) => s.staff_id === newStaff.staff_id);
@@ -72,10 +75,37 @@ const ManageStaff = () => {
     });
   };
 
+  
+
+
+  //activate the staff
+  const handleReactivate = async (id) => {
+    try {
+      await api.patch(`/staff/reactivate/${id}`); // or reuse registerStaff logic
+      setStaff((prev) =>
+        prev.map((s) => (s.staff_id === id ? { ...s, is_active: 1 } : s))
+      );
+      toast.success("Staff reactivated successfully");
+    } catch (error) {
+      console.error("Error reactivating staff:", error);
+      toast.error("Failed to reactivate staff");
+    }
+  };
   // Handle delete
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this staff?")) {
-      setStaff((prev) => prev.filter((s) => s.id !== id));
+  const handleDelete = async (id) => {
+    if (
+      window.confirm("Are you sure you want to mark this staff as inactive?")
+    ) {
+      try {
+        await api.delete(`/staff/delete/${id}`); // call backend soft delete route
+        setStaff((prev) =>
+          prev.map((s) => (s.staff_id === id ? { ...s, is_active: 0 } : s))
+        );
+        toast.success("Staff marked as inactive");
+      } catch (error) {
+        console.error("Error marking staff inactive:", error);
+        toast.error("Failed to update staff status");
+      }
     }
   };
 
@@ -124,6 +154,9 @@ const ManageStaff = () => {
           <thead className="bg-gray-100">
             <tr>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                Staff ID
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
                 Name
               </th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
@@ -131,6 +164,9 @@ const ManageStaff = () => {
               </th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
                 Phone
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                status
               </th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
                 Role
@@ -144,34 +180,51 @@ const ManageStaff = () => {
             {currentStaff.length > 0 ? (
               currentStaff.map((s) => (
                 <tr key={s.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 text-gray-600 text-sm">
+                    {s.login_id}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-gray-800 font-medium">
-                    {s.staff_name || s.name} 
+                    {s.staff_name || s.name}
                   </td>
                   <td className="px-6 py-4 text-gray-600">{s.staff_email}</td>
+
                   <td className="px-6 py-4 text-gray-600">{s.staff_phone}</td>
+                  <td
+                    className={`px-6 py-4 text-gray-600 ${
+                      s.is_active === 1 ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {s.is_active === 1 ? "Active" : "Inactive"}
+                  </td>
                   <td className="px-6 py-4 text-gray-600">{s.proffession}</td>
                   <td className="px-6 py-4 text-center flex justify-center gap-3">
-                    <button
-                      className="text-blue-600 hover:text-blue-800 cursor-pointer"
+                    <CiEdit
+                      className="text-yellow-600 cursor-pointer hover:bg-yellow-100 rounded-full p-1 text-2xl"
                       onClick={() => {
                         setEditingStaff(s);
                         setModalOpen(true);
                       }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="text-red-600 hover:text-red-800 cursor-pointer"
-                      onClick={() => handleDelete(s.staff_id)}
-                    >
-                      Delete
-                    </button>
+                      title="Edit"
+                    />
+                    {s.is_active === 1 ? (
+                      <MdDeleteOutline
+                        className="text-2xl cursor-pointer bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                        onClick={() => handleDelete(s.staff_id)}
+                        title="Delete"
+                      />
+                    ) : (
+                      <ImSwitch
+                        title="Activate"
+                        onClick={() => handleReactivate(s.staff_id)}
+                        className="text-2xl cursor-pointer p-1 rounded-full text-white bg-green-600"
+                      />
+                    )}
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
+                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
                   No staff members found.
                 </td>
               </tr>
