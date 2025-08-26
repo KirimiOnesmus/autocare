@@ -1,9 +1,7 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import StaffManagement from "../../components/business/StaffManagement";
 import api from "../../components/config/api";
 import { toast } from "react-toastify";
-
-
 
 const ManageStaff = () => {
   const [staff, setStaff] = useState([]);
@@ -14,43 +12,45 @@ const ManageStaff = () => {
   const [editingStaff, setEditingStaff] = useState(null);
   const staffPerPage = 5;
 
-  useEffect(()=>{
-    const fetchStaff =async()=>{
+  useEffect(() => {
+    const fetchStaff = async () => {
       try {
         const user = JSON.parse(sessionStorage.getItem("user"));
         const userId = user?.id;
-        if(!userId) return;
+        if (!userId) return;
 
         //fetch all business for this user
-        const businessRes = await api.get(`/business/owners-businesses/${userId}`);
+        const businessRes = await api.get(
+          `/business/owners-businesses/${userId}`
+        );
         const businesses = businessRes.data;
-        if(businesses.length===0) return;
- 
-
-
+        if (businesses.length === 0) return;
 
         //fetch staff for all businesses
-        const res = await api.get(`/staff/get-staff/${userId}`);
+        const businessIds = businesses.map((b) => b.id).join(",");
+        const res = await api.get(`/staff/get-staff/${businessIds}`);
         setStaff(res.data);
-        console.log(userId)
+        console.log(res.data);
       } catch (error) {
-        console.log("Error fetching staff info:",error);
-        toast.error("Failed to fetch staff")
+        console.log("Error fetching staff info:", error);
+        toast.error("Failed to fetch staff");
       }
     };
     fetchStaff();
-  },[])
-
-
-
-
+  }, []);
 
   // Filter staff by name and role
-  const filteredStaff = staff.filter(s => {
-    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
-    const matchesRole = filterRole === "All" || s.role === filterRole;
-    return matchesSearch && matchesRole;
-  });
+ const filteredStaff = staff.filter(s => {
+  const staffName = s.staff_name || s.name || "";  
+  const proffession = s.proffession || "";
+
+  const matchesSearch =
+    staffName.toLowerCase().includes(search.toLowerCase()) ||
+    proffession.toLowerCase().includes(search.toLowerCase());
+
+  const matchesRole = filterRole === "All" || proffession === filterRole;
+  return matchesSearch && matchesRole;
+});
 
   // Pagination
   const indexOfLastStaff = currentPage * staffPerPage;
@@ -60,10 +60,12 @@ const ManageStaff = () => {
 
   // Handle add/edit staff submit
   const handleSubmit = (newStaff) => {
-    setStaff(prev => {
-      const exists = prev.find(s => s.id === newStaff.id);
+    setStaff((prev) => {
+      const exists = prev.find((s) => s.staff_id === newStaff.staff_id);
       if (exists) {
-        return prev.map(s => (s.id === newStaff.id ? newStaff : s));
+        return prev.map((s) =>
+          s.staff_id === newStaff.staff_id ? newStaff : s
+        );
       } else {
         return [newStaff, ...prev];
       }
@@ -73,17 +75,22 @@ const ManageStaff = () => {
   // Handle delete
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this staff?")) {
-      setStaff(prev => prev.filter(s => s.id !== id));
+      setStaff((prev) => prev.filter((s) => s.id !== id));
     }
   };
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-2 sm:mb-0">Staff</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-2 sm:mb-0">
+          Staff
+        </h2>
         <button
           className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-white hover:text-blue-600 hover:border border-blue-600 cursor-pointer transition-all duration-300"
-          onClick={() => { setEditingStaff(null); setModalOpen(true); }}
+          onClick={() => {
+            setEditingStaff(null);
+            setModalOpen(true);
+          }}
         >
           Add Staff
         </button>
@@ -116,36 +123,53 @@ const ManageStaff = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100">
             <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Name</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Phone</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Role</th>
-              <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700">Actions</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                Name
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                Email
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                Phone
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                Role
+              </th>
+              <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {currentStaff.length > 0 ? currentStaff.map(s => (
-              <tr key={s.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-gray-800 font-medium">{s.name}</td>
-                <td className="px-6 py-4 text-gray-600">{s.email}</td>
-                <td className="px-6 py-4 text-gray-600">{s.phone}</td>
-                <td className="px-6 py-4 text-gray-600">{s.role}</td>
-                <td className="px-6 py-4 text-center flex justify-center gap-3">
-                  <button
-                    className="text-blue-600 hover:text-blue-800 cursor-pointer"
-                    onClick={() => { setEditingStaff(s); setModalOpen(true); }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="text-red-600 hover:text-red-800 cursor-pointer"
-                    onClick={() => handleDelete(s.id)}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            )) : (
+            {currentStaff.length > 0 ? (
+              currentStaff.map((s) => (
+                <tr key={s.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-800 font-medium">
+                    {s.staff_name || s.name} 
+                  </td>
+                  <td className="px-6 py-4 text-gray-600">{s.staff_email}</td>
+                  <td className="px-6 py-4 text-gray-600">{s.staff_phone}</td>
+                  <td className="px-6 py-4 text-gray-600">{s.proffession}</td>
+                  <td className="px-6 py-4 text-center flex justify-center gap-3">
+                    <button
+                      className="text-blue-600 hover:text-blue-800 cursor-pointer"
+                      onClick={() => {
+                        setEditingStaff(s);
+                        setModalOpen(true);
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="text-red-600 hover:text-red-800 cursor-pointer"
+                      onClick={() => handleDelete(s.staff_id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
               <tr>
                 <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
                   No staff members found.
@@ -159,14 +183,16 @@ const ManageStaff = () => {
       {/* Pagination */}
       <div className="flex justify-center mt-4 space-x-2">
         <button
-          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
           className="px-3 py-1 border rounded-md bg-white hover:bg-blue-100 disabled:opacity-50 hover:cursor-pointer"
         >
           Prev
         </button>
         <button
-          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+          onClick={() =>
+            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+          }
           disabled={currentPage === totalPages}
           className="px-3 py-1 border rounded-md bg-white hover:bg-blue-100 disabled:opacity-50 hover:cursor-pointer"
         >

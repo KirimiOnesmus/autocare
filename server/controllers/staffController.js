@@ -102,27 +102,31 @@ const registerStaff = async (req, res) => {
 };
 
 const fetchStaff = async (req, res) => {
-  const ownerId = req.params.id;
  
   try {
+    const businessIds =  req.params.ids.split(",").map(id=>parseInt(id.trim())).filter(Boolean);
+
+    if(businessIds.length ===0){
+      return res.status(400).json({error:"No valid business IDs provided"});
+    }
     const [staff] = await db.query(
-      `SELECT 
+    `SELECT 
         s.id AS staff_id,
-         s.login_id,
-         s.proffession,
-         s.national_id,
-         s.kra_pin,
-         s.pay_commission,
-         s.hire_date,
-         s.business_id,
-         u.name AS staff_name,
-         u.email AS staff_email,
-         u.phone AS staff_phone
-           FROM staff s
+        s.login_id,
+        s.proffession,
+        s.national_id,
+        s.kra_pin,
+        s.pay_commission,
+        s.hire_date,
+        s.business_id,
+        u.name AS staff_name,
+        u.email AS staff_email,
+        u.phone AS staff_phone
+       FROM staff s
        JOIN businesses b ON s.business_id = b.id
        JOIN users u ON s.user_id = u.id
-       WHERE b.owner_id = ?`,
-      [ownerId]
+       WHERE s.business_id IN (?)`,
+      [businessIds]
     );
     res.status(200).json(staff);
   } catch (error) {

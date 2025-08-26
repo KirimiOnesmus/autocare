@@ -107,7 +107,7 @@ const StaffManagement = ({
             <input
               name="name"
               type="text"
-              defaultValue={staffData?.name || ""}
+              defaultValue={staffData?.staff_name || ""}
               required
               className="mt-1 block w-full outline-none border-gray-300 rounded-md p-2 shadow-sm focus:ring-1 focus:ring-blue-500"
             />
@@ -120,7 +120,7 @@ const StaffManagement = ({
             <input
               name="email"
               type="email"
-              defaultValue={staffData?.email || ""}
+              defaultValue={staffData?.staff_email || ""}
               required
               className="mt-1 block w-full outline-none border-gray-300 rounded-md p-2 shadow-sm focus:ring-1 focus:ring-blue-500"
             />
@@ -133,7 +133,7 @@ const StaffManagement = ({
             <input
               name="phone"
               type="text"
-              defaultValue={staffData?.phone || ""}
+              defaultValue={staffData?.staff_phone || ""}
               required
               className="mt-1 block w-full outline-none border-gray-300 rounded-md p-2 shadow-sm focus:ring-1 focus:ring-blue-500"
             />
