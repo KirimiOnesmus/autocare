@@ -4,12 +4,10 @@ const {registerService,getServices,updateService,deleteServices} = require("../c
 
 router.post("/add-service", registerService);
 
-router.get("/business/:businessId", getServices); //all services
+router.get("/getService/:businessId", getServices); 
 
-router.get("/:id",getServices); //service by id
+router.put("/update/:id", updateService); 
 
-router.put("/:id",updateService);
-
-router.delete("/:id",deleteServices);
+router.delete("/delete/:id", deleteServices);
 
 module.exports = router;

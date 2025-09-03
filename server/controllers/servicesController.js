@@ -46,19 +46,13 @@ const registerService = async (req, res) => {
   }
 };
 const getServices= async(req,res) =>{
-    const { businessId, id } = req.params;
+    const { businessId } = req.params;
+      if (!businessId) {
+      return res.status(400).json({ error: "No valid business IDs provided" });
+    }
     try {
-        let query,values;
-        if(id){
-            query  = `SELECT FROM services WHERE id = ?`;
-            values = [id];
-        }else if(businessId){
-            query =  `SELECT * FROM services WHERE business_id = ?`;
-            values = [businessId];
-        }else{
-            return res.status (400).json({error: "Missing businessID or Service ID"});
-        }
-        const [services]= await db.query("SELECT * FROM services");
+    
+        const [services]= await db.query("SELECT * FROM services WHERE business_id = ?",[businessId]);
 
         if(services.length ===0){
             return res.status(400).json({ error:"No serices found"});
@@ -78,7 +72,7 @@ const updateService = async (req, res) => {
     req.body;
   try {
     const [service] = await db.query(`SELECT * FROM services WHERE id= ?`, [
-      id,
+      id
     ]);
     if (service.length === 0) {
       return res.status(404).json({
@@ -87,7 +81,7 @@ const updateService = async (req, res) => {
     }
     if (name) {
       const [duplicate] = await db.query(
-        `SELECT id FROM service WHERE business_id = ? AND name = ? AND id !=? `,
+        `SELECT id FROM services WHERE business_id = ? AND service_name = ? AND id !=? `,
         [service[0].business_id, name, id]
       );
       if (duplicate.length > 0) {

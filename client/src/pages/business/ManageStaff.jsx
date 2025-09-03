@@ -18,7 +18,7 @@ const ManageStaff = () => {
   const businessId = user?.businessId;
 
   useEffect(() => {
-    console.log("User details:", businessId)
+  
     const fetchStaff = async () => {
       try {
           if(!businessId){

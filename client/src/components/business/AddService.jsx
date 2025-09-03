@@ -2,31 +2,14 @@ import React, { useState, useEffect } from "react";
 import api from "../config/api";
 import { toast } from "react-toastify";
 
-const AddService = ({ isOpen, onClose, onSubmit, serviceData, businessId }) => {
+const AddService = ({ isOpen, onClose, onSubmit, serviceData, businessId,fetchServices }) => {
   if (!isOpen) return null;
-  const [businesses, setBusinesses] = useState([]);
-  const [selectedBusinessId, setSelectedBusinessId] = useState(
-    serviceData?.business_id || businessId || ""
-  );
-  const storedUser = JSON.parse(sessionStorage.getItem("user"));
-  const userId = storedUser?.id;
-  //fetch businesses
-  useEffect(() => {
-    const fetchBusinesses = async () => {
-      try {
-        const res = await api.get(`/business/owners-businesses/${userId}`);
-        setBusinesses(res.data);
-      } catch (error) {
-        console.error("Error fetching businesses:", error);
-      }
-    };
-    fetchBusinesses();
-  }, [userId]);
+  const selectedBusinessId = businessId;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
-    const newService = {
+    const service = {
       name: formData.get("name"),
       description: formData.get("description"),
       price: parseFloat(formData.get("price")),
@@ -36,24 +19,33 @@ const AddService = ({ isOpen, onClose, onSubmit, serviceData, businessId }) => {
       business_id: selectedBusinessId,
     };
     try {
-      const res = await api.post("/service/add-service", newService);
-
-      toast.success("Service added successfully!");
-      onSubmit(newService);
-      onClose();
+      let res;
+      if (serviceData) {
+       res = await api.put(`/service/update/${serviceData.id}`, service);
+        toast.success("Service updated successfully!");
+        if (fetchServices) {
+          fetchServices();
+        }
+      } else {
+       res = await api.post("/service/add-service", service);
+        toast.success("Service added successfully!");
+        if (fetchServices) {
+          fetchServices();
+        }
+     
+      }
+         onClose();
     } catch (error) {
       console.log("Error registering new service", error);
       toast.error("Failed to register the new service. Try again later!");
     }
-    onSubmit(newService);
-    onClose();
   };
   return (
     <div className="fixed inset-0 backdrop-blur-lg bg-black/30 flex justify-center items-start sm:items-center z-50 p-4 overflow-auto">
       <div className="bg-white rounded-lg w-full max-w-6xl sm:p-6 p-4 max-h-[90vh] flex flex-col shadow-lg overflow-auto">
         <div className="flex justify-between items-center mb-2 flex-shrink-0">
           <h2 className="text-2xl font-semibold">
-            {serviceData?"Edit Service":"Add Service"}
+            {serviceData ? "Edit Service" : "Add Service"}
           </h2>
           <button
             onClick={onClose}
@@ -61,24 +53,6 @@ const AddService = ({ isOpen, onClose, onSubmit, serviceData, businessId }) => {
           >
             X
           </button>
-        </div>
-        <div className="flex w-full mb-2">
-          <select
-            name="business_id"
-            value={selectedBusinessId}
-            onChange={(e) => setSelectedBusinessId(e.target.value)}
-            required
-            className="mt-1 block w-full outline-none border-gray-300 font-md font-semibold text-gray-700 rounded-md p-2 shadow-sm focus:ring-1 focus:ring-blue-500"
-          >
-            <option value="" className="">
-              Select Business
-            </option>
-            {businesses.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.business_name}
-              </option>
-            ))}
-          </select>
         </div>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
@@ -90,7 +64,7 @@ const AddService = ({ isOpen, onClose, onSubmit, serviceData, businessId }) => {
               type="text"
               name="name"
               required
-              defaultValue={serviceData?. service_name || ""}
+              defaultValue={serviceData?.service_name || ""}
               className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm  focus:outline-none focus:border-blue-500"
               placeholder="Enter service name"
             />
@@ -100,7 +74,7 @@ const AddService = ({ isOpen, onClose, onSubmit, serviceData, businessId }) => {
               Description
             </label>
             <textarea
-            name="description"
+              name="description"
               required
               defaultValue={serviceData?.description || ""}
               className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm  focus:outline-none focus:border-blue-500"
@@ -141,10 +115,11 @@ const AddService = ({ isOpen, onClose, onSubmit, serviceData, businessId }) => {
             <label className="block text-md font-medium text-gray-700">
               Service Type
             </label>
-            <select 
-            name="subscription_type"
-            defaultValue={serviceData?.subscription_type || ""}
-            className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm  focus:outline-none focus:border-blue-500">
+            <select
+              name="subscription_type"
+              defaultValue={serviceData?.subscription_type || ""}
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm  focus:outline-none focus:border-blue-500"
+            >
               <option value="basic">Basic</option>
               <option value="premium">Premium</option>
             </select>
@@ -153,9 +128,10 @@ const AddService = ({ isOpen, onClose, onSubmit, serviceData, businessId }) => {
             <label className="block text-md font-medium text-gray-700">
               Status
             </label>
-            <select 
-            name="status"
-            className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm  focus:outline-none focus:border-blue-500">
+            <select
+              name="status"
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm  focus:outline-none focus:border-blue-500"
+            >
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
@@ -165,8 +141,7 @@ const AddService = ({ isOpen, onClose, onSubmit, serviceData, businessId }) => {
               type="submit"
               className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-white hover:text-blue-500 hover:border border-blue-500 hover:cursor-pointer transition-all"
             >
-             {serviceData ?"Update Service":
-             " Add Service"}
+              {serviceData ? "Update Service" : " Add Service"}
             </button>
           </div>
         </form>
