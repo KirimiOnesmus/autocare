@@ -1,10 +1,9 @@
 const bcrypt = require("bcryptjs");
 const db = require("../config/db");
 
-/**
- * Register staff
- * - Creates new staff or reactivates if they were inactive
- */
+
+// Register staff
+ 
 const registerStaff = async (req, res) => {
   const {
     name,
@@ -16,7 +15,9 @@ const registerStaff = async (req, res) => {
     pay_commission,
     hire_date,
     business_id,
-    password, // Only required for new users
+    role,
+    password,
+     // Only required for new users
   } = req.body;
 
   const connection = await db.getConnection();
@@ -50,7 +51,7 @@ const registerStaff = async (req, res) => {
       const passwordHash = await bcrypt.hash(password, 10);
       const [userResult] = await connection.query(
         `INSERT INTO users (name, email, phone, password, role) VALUES (?, ?, ?, ?, ?)`,
-        [name, email, phone, passwordHash, "staff"]
+        [name, email, phone, passwordHash, role]
       );
       user_id = userResult.insertId;
     }
@@ -124,17 +125,14 @@ const registerStaff = async (req, res) => {
   }
 };
 
-/**
- * Fetch staff (active + inactive)
- */
+// Fetch staff (active + inactive)
+
 const fetchStaff = async (req, res) => {
   try {
-    const businessIds = req.params.ids
-      .split(",")
-      .map((id) => parseInt(id.trim()))
-      .filter(Boolean);
+    const {businessId}= req.params;
 
-    if (businessIds.length === 0) {
+
+    if (!businessId) {
       return res.status(400).json({ error: "No valid business IDs provided" });
     }
 
@@ -156,7 +154,7 @@ const fetchStaff = async (req, res) => {
        JOIN businesses b ON s.business_id = b.id
        JOIN users u ON s.user_id = u.id
        WHERE s.business_id IN (?)`,
-      [businessIds]
+      [businessId]
     );
 
     res.status(200).json(staff);

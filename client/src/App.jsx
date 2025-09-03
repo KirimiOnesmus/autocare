@@ -61,9 +61,9 @@ function App() {
 
         {/* Business Dashboard */}
         <Route
-          path="/business/dashboard"
+          path="/business/:businessId/dashboard"
           element={
-            <ProtectedRoute allowedRoles={["owner", "manager"]}>
+            <ProtectedRoute allowedRoles={["manager", "owner"]}>
               <BusinessDashboard />
             </ProtectedRoute>
           }

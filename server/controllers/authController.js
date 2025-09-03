@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const db =require( "../config/db")
+const db = require("../config/db");
 
 const registerUser = async (req, res) => {
   const { name, email, password, role } = req.body;
@@ -37,10 +37,30 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const [rows] = await db.query("SELECT * FROM users WHERE email = ?", [
-      email,
-    ]);
-    const user = rows[0];
+    //first checking business email
+    const [businessRows] = await db.query(
+      "SELECT * FROM businesses WHERE email = ?",
+      [email]
+    );
+    let user = null;
+    let isBusinessLogin = false;
+    if (businessRows.length > 0) {
+      const business = businessRows[0];
+      isBusinessLogin = true;
+      const [userRows] = await db.query("SELECT * FROM users WHERE id = ?", [
+        business.owner_id,
+      ]);
+      if (userRows.length > 0) {
+        user = userRows[0];
+      }
+    } else {
+      const [userRows] = await db.query("SELECT * FROM users WHERE email = ?", [
+        email,
+      ]);
+      if (userRows.length > 0) {
+        user = userRows[0];
+      }
+    }
 
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
@@ -56,8 +76,38 @@ const loginUser = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
-    //fetch all businesses related to the user
-    const [businesses] =await db.query("SELECT * FROM businesses WHERE owner_id = ?",[user.id]);
+    // fetching specific business related to the staff and manager
+    let businessId = null;
+    let businesses = [];
+    if (user.role === "manager") {
+      try {
+        const [staffRows] = await db.query(
+          "SELECT business_id FROM staff WHERE user_id = ? LIMIT 1",
+          [user.id]
+        );
+        console.log("Staff query results:", staffRows);
+        if (staffRows.length > 0) {
+          businessId = staffRows[0].business_id;
+          console.log("Found business ID for manager:", businessId);
+        } else {
+          console.log("No staff record found for user ID:", user.id);
+        }
+      } catch (error) {
+        console.error("Error fetching business ID for manager:", error);
+      }
+    }
+   
+
+    if (user.role === "owner") {
+      [businesses] = await db.query(
+        "SELECT * FROM businesses WHERE owner_id = ?",
+        [user.id]
+      );
+
+      if (businesses && businesses.length > 0) {
+        businessId = businesses[0].id;
+      }
+    }
 
     res.status(200).json({
       message: "Login Successful",
@@ -65,10 +115,12 @@ const loginUser = async (req, res) => {
       user: {
         id: user.id,
         name: user.name,
-        email: user.email,
+        email: isBusinessLogin ? email : user.email,
         role: user.role,
+        businessId,
       },
-      businesses
+      businesses,
+      isBusinessLogin,
     });
   } catch (error) {
     console.error("Login error:", error);

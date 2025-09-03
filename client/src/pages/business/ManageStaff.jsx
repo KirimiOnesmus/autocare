@@ -14,24 +14,18 @@ const ManageStaff = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState(null);
   const staffPerPage = 5;
+  const user=JSON.parse(sessionStorage.getItem("user"));
+  const businessId = user?.businessId;
 
   useEffect(() => {
+    console.log("User details:", businessId)
     const fetchStaff = async () => {
       try {
-        const user = JSON.parse(sessionStorage.getItem("user"));
-        const userId = user?.id;
-        if (!userId) return;
-
-        //fetch all business for this user
-        const businessRes = await api.get(
-          `/business/owners-businesses/${userId}`
-        );
-        const businesses = businessRes.data;
-        if (businesses.length === 0) return;
-
-        //fetch staff for all businesses
-        const businessIds = businesses.map((b) => b.id).join(",");
-        const res = await api.get(`/staff/get-staff/${businessIds}`);
+          if(!businessId){
+            toast.error("No business associated with this account.");
+            return;
+          }
+        const res = await api.get(`/staff/get-staff/${businessId}`);
         setStaff(res.data);
         console.log(res.data);
       } catch (error) {
@@ -40,7 +34,7 @@ const ManageStaff = () => {
       }
     };
     fetchStaff();
-  }, []);
+  }, [businessId]);
 
   // Filter staff by name and role
   const filteredStaff = staff.filter((s) => {
@@ -83,7 +77,7 @@ const ManageStaff = () => {
     try {
       await api.patch(`/staff/reactivate/${id}`); // or reuse registerStaff logic
       setStaff((prev) =>
-        prev.map((s) => (s.staff_id === id ? { ...s, is_active: 1 } : s))
+        prev.map((s) => (s.staff_id === id || s.id === id ? { ...s, is_active: 1 } : s))
       );
       toast.success("Staff reactivated successfully");
     } catch (error) {
@@ -99,7 +93,7 @@ const ManageStaff = () => {
       try {
         await api.delete(`/staff/delete/${id}`); // call backend soft delete route
         setStaff((prev) =>
-          prev.map((s) => (s.staff_id === id ? { ...s, is_active: 0 } : s))
+          prev.map((s) => (s.staff_id === id || s.id === id ? { ...s, is_active: 0 } : s))
         );
         toast.success("Staff marked as inactive");
       } catch (error) {
@@ -260,6 +254,7 @@ const ManageStaff = () => {
           onClose={() => setModalOpen(false)}
           onSubmit={handleSubmit}
           staffData={editingStaff}
+          businessId={businessId}
         />
       )}
     </div>

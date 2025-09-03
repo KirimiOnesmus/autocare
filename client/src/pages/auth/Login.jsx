@@ -40,17 +40,56 @@ const Login = () => {
 
     try {
       const response = await api.post("/auth/login", dataToSend);
-      const { token, user } = response.data;
+      const { token, user, businesses, isBusinessLogin } = response.data;
+      //debugging:
+      // console.log("Login response:", response.data);
+      // console.log("User role:", user.role);
+      // console.log("Business ID:", user.businessId);
+      // console.log("Businesses array:", businesses);
+
       sessionStorage.setItem("token", token);
-      sessionStorage.setItem("user", JSON.stringify(user));
+      let userToStore = { ...user };
+      if (user.role === "owner" && businesses && businesses.length > 0) {
+        userToStore.businessId = businesses[0].id;
+        // console.log("Added business ID to owner user:", userToStore.businessId);
+      }
 
+      sessionStorage.setItem("user", JSON.stringify(userToStore));
 
-      toast.success("Logging in. Welcome back...");
+      if (businesses && businesses.length > 0) {
+        sessionStorage.setItem("businesses", JSON.stringify(businesses));
+      }
+
+      toast.success(
+        isBusinessLogin
+          ? "Business login successfully. Welcome!"
+          : "Logging in. Welcome back..."
+      );
 
       if (user.role === "customer") {
         navigate("/home");
-      } else if (["owner", "manager"].includes(user.role)) {
-        navigate("/business/dashboard");
+      } else if (user.role === "owner") {
+        if (businesses && businesses.length > 0) {
+          navigate(`/business/${businesses[0].id}/dashboard`);
+        } else {
+          navigate("/business/dashboard");
+        }
+      } else if (user.role === "manager") {
+     
+        let businessId = user.businessId;
+        if (!businessId && businesses && businesses.length > 0) {
+          businessId = businesses[0].id;
+          // console.log("Using business ID from businesses array:", businessId);
+        }
+
+        if (businessId) {
+          navigate(`/business/${businessId}/dashboard`);
+        } else {
+          // console.error("Manager has no business ID assigned");
+          toast.error(
+            "Your account is not associated with any business. Please contact administrator."
+          );
+        }
       } else if (["admin", "super_admin"].includes(user.role)) {
         navigate("/admin");
       } else if (user.role === "staff") {

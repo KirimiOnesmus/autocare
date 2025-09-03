@@ -1,6 +1,6 @@
 
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate,useParams } from "react-router-dom";
 import { AiFillDashboard, AiOutlineLogout } from "react-icons/ai";
 import { BsCalendar2Date } from "react-icons/bs";
 import {
@@ -20,49 +20,50 @@ const Sidebar = () => {
 
   const user = JSON.parse(sessionStorage.getItem("user"));
   const role = user?.role || "";
+  const { businessId } = useParams();
 
   // Business dashboard tabs
   const businessTabs = [
     {
       name: "Overview",
       icons: <AiFillDashboard />,
-      path: "/business/dashboard",
+      path: `/business/${businessId}/dashboard`,
       roles: ["owner", "manager"],
     },
     {
       name: "Bookings",
       icons: <BsCalendar2Date />,
-      path: "/business/dashboard/bookings",
+      path: `/business/${businessId}/dashboard/bookings`,
       roles: ["owner", "manager"],
     },
     {
       name: "Services",
       icons: <MdMiscellaneousServices />,
-      path: "/business/dashboard/services",
+      path: `/business/${businessId}/dashboard/services`,
       roles: ["owner", "manager"],
     },
     {
       name: "Customers",
       icons: <MdPeople />,
-      path: "/business/dashboard/customers",
+      path: `/business/${businessId}/dashboard/customers`,
       roles: ["owner", "manager"],
     },
     {
       name: "Staff",
       icons: <MdOutlineEngineering />,
-      path: "/business/dashboard/staff",
+      path: `/business/${businessId}/dashboard/staff`,
       roles: ["owner", "manager"],
     },
     {
       name: "Reports",
       icons: <BiSolidReport />,
-      path: "/business/dashboard/reports",
+      path: `/business/${businessId}/dashboard/reports`,
       roles: ["owner"],
     },
     {
       name: "Business Settings",
       icons: <RiFolderSettingsFill />,
-      path: "/business/dashboard/management",
+      path: `/business/${businessId}/dashboard/management`,
       roles: ["owner"],
     },
   ];
@@ -128,7 +129,7 @@ const Sidebar = () => {
         <ul className="space-y-2">
           {tabs.map((tab, index) => {
             const isActive =
-              tab.path === "/business/dashboard" || tab.path === "/admin/overview"
+              tab.path === `/business/${businessId}/dashboard`|| tab.path === "/admin/overview"
                 ? location.pathname === tab.path
                 : location.pathname.startsWith(tab.path);
 

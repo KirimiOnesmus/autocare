@@ -10,27 +10,9 @@ const StaffManagement = ({
   businessId,
 }) => {
   if (!isOpen) return null;
-  const [businesses, setBusinesses] = useState([]);
-  const [selectedBusinessId, setSelectedBusinessId] = useState(
-    staffData?.business_id || businessId || ""
-  );
   const [showPassword, setShowPassword] = useState(false);
+  const selectedBusinessId = businessId;
 
-  const storedUser = JSON.parse(sessionStorage.getItem("user"));
-  const userId = storedUser?.id;
-
-  // Fetch owner's businesses
-  useEffect(() => {
-    const fetchBusinesses = async () => {
-      try {
-        const res = await api.get(`/business/owners-businesses/${userId}`);
-        setBusinesses(res.data);
-      } catch (error) {
-        console.error("Error fetching businesses:", error);
-      }
-    };
-    fetchBusinesses();
-  }, [userId]);
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -44,6 +26,7 @@ const StaffManagement = ({
       kra_pin: formData.get("kra_pin"),
       pay_commission: parseFloat(formData.get("pay_commission")),
       business_id: selectedBusinessId,
+      role: formData.get("role" ),
       password: formData.get("password"),
     };
     if (!staffData) {
@@ -52,7 +35,7 @@ const StaffManagement = ({
     try {
       let res;
       if (staffData) {
-      console.log(staffData.staff_id)
+        console.log(staffData.staff_id);
         res = await api.put(`/staff/update/${staffData.staff_id}`, staff);
         toast.success("Staff updated successfully !");
         onSubmit({ ...staffData, ...staff });
@@ -87,24 +70,6 @@ const StaffManagement = ({
           >
             X
           </button>
-        </div>
-        <div className="flex w-full mb-2">
-          <select
-            name="business_id"
-            value={selectedBusinessId}
-            onChange={(e) => setSelectedBusinessId(e.target.value)}
-            required
-            className="mt-1 block w-full outline-none border-gray-300 font-md font-semibold text-gray-700 rounded-md p-2 shadow-sm focus:ring-1 focus:ring-blue-500"
-          >
-            <option value="" className="">
-              Select Business
-            </option>
-            {businesses.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.business_name}
-              </option>
-            ))}
-          </select>
         </div>
         <form
           className="grid grid-cols-1 lg:grid-cols-2 gap-4"
@@ -147,6 +112,19 @@ const StaffManagement = ({
               required
               className="mt-1 block w-full outline-none border-gray-300 rounded-md p-2 shadow-sm focus:ring-1 focus:ring-blue-500"
             />
+          </div>
+          <div>
+            <label className="block text-md font-medium text-gray-700">
+              Select Role(Manager/ Staff)
+            </label>
+            <select 
+            name="role"
+            defaultValue={staffData?.role || ""}
+            className="mt-1 block w-full outline-none border-gray-300 font-md font-semibold text-gray-700 rounded-md p-2 shadow-sm focus:ring-1 focus:ring-blue-500">
+              <option value="">Select Role</option>
+              <option value="manager">Manager</option>
+              <option value="staff">Staff</option>
+            </select>
           </div>
 
           <div>
