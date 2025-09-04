@@ -294,23 +294,25 @@ const BusinessProfile = () => {
             {activeTab === "hours" && (
               <div className="space-y-3">
                 <h3 className="font-semibold text-lg mb-4">Working Hours</h3>
-                {Object.entries(business.business_hours).map(([day_of_week, business_hours]) => (
-                  <div
-                    key={day_of_week}
-                    className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0"
-                  >
-                    <span className="font-medium capitalize text-gray-900">
-                      {business_hours.day_of_week}
-                    </span>
-                    <span className="text-gray-600">
-                      {business_hours.is_closed === 1 ? (
-                        <span className="text-red-500">Closed</span>
-                      ) : (
-                        `${business_hours.open_time} - ${business_hours.close_time}`
-                      )}
-                    </span>
-                  </div>
-                ))}
+                {Object.entries(business.business_hours).map(
+                  ([day_of_week, business_hours]) => (
+                    <div
+                      key={day_of_week}
+                      className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0"
+                    >
+                      <span className="font-medium capitalize text-gray-900">
+                        {business_hours.day_of_week}
+                      </span>
+                      <span className="text-gray-600">
+                        {business_hours.is_closed === 1 ? (
+                          <span className="text-red-500">Closed</span>
+                        ) : (
+                          `${business_hours.open_time} - ${business_hours.close_time}`
+                        )}
+                      </span>
+                    </div>
+                  )
+                )}
               </div>
             )}
 
@@ -448,7 +450,10 @@ const BusinessProfile = () => {
       {showBookingModal && selectedService && (
         <BookService
           service={selectedService}
-          business ={business}
+          business={business}
+          serviceIcon={
+            serviceIcons[selectedService.service_type] || serviceIcons.default
+          }
           onClose={() => {
             setShowBookingModal(false);
             setSelectedService(null);
