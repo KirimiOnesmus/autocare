@@ -310,6 +310,126 @@ try {
 
 }
 
+//Customer fetching businesses
+const getAllBusiness = async(req,res)=>{
+  try {
+    const [businesses] = await db.query(
+      `SELECT b.*,
+      AVG (r.rating) as rating,
+      COUNT (r.id) as review_count,
+      JSON_ARRAYAGG(
+      JSON_OBJECT(
+      'id', s.id,
+      'service_name', s.service_name,
+      'price', s.price,
+      'duration', s.duration
+      )
+      ) as services
+       FROM businesses b
+       LEFT JOIN services s ON b.id =  s.business_id
+       LEFT JOIN reviews r ON b.id = r.business_id
+       WHERE b.is_verified = 1
+       GROUP BY b.id
+       `
+    )
+    res.json(businesses);
+  } catch (error) {
+    console.error("Error fetching businesses:", error);
+    res.status(500).json({error:"Failed to fetch businesses"});
+    
+  }
+}
+const getCustomerBussinessById =async(req,res)=>{
+  try {
+    const {id} =req.params;
+
+    //get general business details
+    const [business] = await db.query(`
+      SELECT 
+        b.*,
+        AVG(r.rating) as rating,
+        COUNT(r.id) as review_count
+      FROM businesses b
+      LEFT JOIN reviews r ON b.id = r.business_id
+      WHERE b.id = ? AND b.is_verified = 1
+      GROUP BY b.id
+    `, [id]);
+
+    if (business.length === 0) {
+      return res.status(404).json({
+        message: "Business not found"
+      });
+    }
+
+    // Get services separately
+    const [services] = await db.query(`
+      SELECT 
+        id,
+        service_name,
+        description,
+        price,
+        duration,
+        status,
+        subscription_type
+      FROM services
+      WHERE business_id = ? AND status = 'active'
+    `, [id]);
+
+    // Get staff separately
+    const [staff] = await db.query(`
+      SELECT 
+        st.id,
+        u.name,
+        st.proffession,
+        u.email as contact
+      FROM staff st
+      LEFT JOIN users u ON st.user_id = u.id
+      WHERE st.business_id = ?
+    `, [id]);
+
+    // Get business hours separately
+    const [businessHours] = await db.query(`
+      SELECT 
+        id,
+        day_of_week,
+        open_time,
+        close_time,
+        is_closed
+      FROM business_hours
+      WHERE business_id = ?
+      ORDER BY day_of_week
+    `, [id]);
+
+    // Get reviews separately
+    const [reviews] = await db.query(`
+      SELECT 
+        r.*,
+        u.name as customer_name,
+        b.booking_date
+      FROM reviews r
+      LEFT JOIN users u ON r.customer_id = u.id
+      LEFT JOIN bookings b ON r.booking_id = b.id
+      WHERE r.business_id = ?
+      ORDER BY r.create_at DESC
+    `, [id]);
+
+    // Combine all data
+    const businessData = {
+      ...business[0],
+      services: services,
+      staff: staff,
+      business_hours: businessHours,
+      reviews: reviews
+    };
+
+    res.json(businessData);
+
+  } catch (error) {
+    console.error("Error fetching the business:", error);
+    res.status(500).json({ message: "Failed to fetch business" });
+  }
+}
+
 module.exports = {
   businessRegistration,
   fetchBusiness,
@@ -317,5 +437,7 @@ module.exports = {
   ownerFetchAllBusinesses,
   getBusinessById,
   ownerUpdateBusiness,
-  busines_hours
+  busines_hours,
+  getAllBusiness,
+  getCustomerBussinessById
 };

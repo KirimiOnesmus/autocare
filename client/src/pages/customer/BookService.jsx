@@ -1,7 +1,7 @@
 import React, {useState}from 'react'
 import {  FaRegClock} from "react-icons/fa";
 import{MdOutlineAttachMoney} from "react-icons/md";
-const BookService = ({ service, onClose }) => {
+const BookService = ({ service, onClose,business }) => {
       const [selectedDate, setSelectedDate] = useState('');
     const [selectedTime, setSelectedTime] = useState('');
     const [customerInfo, setCustomerInfo] = useState({

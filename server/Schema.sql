@@ -95,21 +95,91 @@ CREATE TABLE service_categories (
     description TEXT
 );
 
+-- Customers table
 
--- CREATE TABLE bookings (
---     id INT PRIMARY KEY AUTO_INCREMENT,
---     customer_id INT NOT NULL,
---     business_id INT NOT NULL,
---     service_id INT NOT NULL,
---     staff_id INT NULL, -- assigned later (if needed)
---     booking_time DATETIME NOT NULL,
---     status ENUM('pending','confirmed','in_progress','completed','cancelled') DEFAULT 'pending',
---     notes TEXT,
---     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
---     FOREIGN KEY (customer_id) REFERENCES users(id) ON DELETE CASCADE,
---     FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE,
---     FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE,
---     FOREIGN KEY (staff_id) REFERENCES staff(id) ON DELETE SET NULL
--- );
+CREATE TABLE customers(
+id INT PRIMARY KEY AUTO_INCREMENT,
+user_id INT UNIQUE NOT NULL,
+address TEXT NULL,
+city VARCHAR(50) NULL,
+postal_code VARCHAR (20) NULL,
+gender ENUM ('male', 'female') NULL,
+preferred_contact ENUM ('email','phone','both') DEFAULT 'both',
+loyalty_points INT DEFAULT 0,
+total_bookings INT DEFAULT 0,
+total_spent DECIMAL(10,2) DEFAULT 0.00,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+)
+
+
+-- REVIEW TABLE
+CREATE TABLE bookings ( 
+    id INT PRIMARY KEY AUTO_INCREMENT, 
+    booking_reference VARCHAR(20) UNIQUE NOT NULL, -- Auto-generated unique reference 
+    service_id INT NOT NULL, 
+    customer_id INT NOT NULL, 
+    staff_id INT NULL, 
+    business_id INT NOT NULL, -- Denormalized for faster queries 
+    booking_date DATE NOT NULL, 
+    booking_time TIME NOT NULL, 
+    estimated_duration INT NOT NULL, -- in minutes 
+    service_location TEXT NULL, 
+    service_coordinates POINT NULL, -- GPS coordinates 
+    original_price DECIMAL(10,2) NOT NULL, 
+    discount_amount DECIMAL(10,2) DEFAULT 0.00, 
+    final_price DECIMAL(10,2) NOT NULL, 
+     status ENUM('pending', 'confirmed', 'in_progress', 'completed', 'cancelled', 'rescheduled') DEFAULT 
+'pending', 
+    payment_status ENUM('pending', 'paid', 'failed', 'refunded', 'partial') DEFAULT 'pending', 
+    customer_notes TEXT NULL, 
+    staff_notes TEXT NULL, 
+    cancellation_reason TEXT NULL, 
+    confirmed_at TIMESTAMP NULL, 
+    started_at TIMESTAMP NULL, 
+    completed_at TIMESTAMP NULL, 
+    cancelled_at TIMESTAMP NULL, 
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,     
+    FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE RESTRICT, 
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE, 
+    FOREIGN KEY (staff_id) REFERENCES staff(id) ON DELETE SET NULL, 
+    FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE 
+); 
+
+
+--
+
+CREATE TABLE bookings ( 
+    id INT PRIMARY KEY AUTO_INCREMENT, 
+    booking_reference VARCHAR(20) UNIQUE NOT NULL, 
+    service_id INT NOT NULL, 
+    customer_id INT NOT NULL, 
+    staff_id INT NULL, 
+    business_id INT NOT NULL, -- Denormalized for faster queries 
+    booking_date DATE NOT NULL, 
+    booking_time TIME NOT NULL, 
+    estimated_duration INT NOT NULL,  
+    service_location TEXT NULL, 
+    original_price DECIMAL(10,2) NOT NULL, 
+    discount_amount DECIMAL(10,2) DEFAULT 0.00, 
+    final_price DECIMAL(10,2) NOT NULL, 
+	status ENUM('pending', 'confirmed', 'in_progress', 'completed', 'cancelled', 'rescheduled') DEFAULT 
+'pending', 
+    payment_status ENUM('pending', 'paid', 'failed', 'refunded') DEFAULT 'pending', 
+    customer_notes TEXT NULL, 
+    staff_notes TEXT NULL, 
+    cancellation_reason TEXT NULL, 
+    confirmed_at TIMESTAMP NULL, 
+    started_at TIMESTAMP NULL, 
+    completed_at TIMESTAMP NULL, 
+    cancelled_at TIMESTAMP NULL, 
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,     
+    FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE RESTRICT, 
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE, 
+    FOREIGN KEY (staff_id) REFERENCES staff(id) ON DELETE SET NULL, 
+    FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE 
+); 
 
