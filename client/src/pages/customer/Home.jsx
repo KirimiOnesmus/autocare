@@ -353,7 +353,7 @@ const Home = () => {
                   setSelectedCategory("all");
                   setSelectedLocation("");
                 }}
-                className="text-blue-600 font-semibold hover:text-blue-700"
+                className="text-blue-600 font-semibold hover:text-blue-700 cursor-pointer hover:underline"
               >
                 Clear all filters
               </button>

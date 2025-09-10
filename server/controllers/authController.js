@@ -19,15 +19,25 @@ const registerUser = async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-
-    const [result] = await db.query(
+    try {
+      
+          const [userResult] = await db.query(
       "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
       [name, email, passwordHash, role]
     );
+    db.query(
+      "INSERT INTO customers (user_id) VALUES(?)",
+      [userResult.insertId]
+    )
     res.status(201).json({
       message: "Customer registered successfully",
-      userId: result.insertId,
+      userId: userResult.insertId,
     });
+    } catch (error) {
+      console.log("Cant register the customer:", error);
+    }
+
+
   } catch (error) {
     console.error("Register error:", error);
     res.status(500).json({ message: "Failed to register user" });
@@ -44,6 +54,8 @@ const loginUser = async (req, res) => {
     );
     let user = null;
     let isBusinessLogin = false;
+    let customerId = null;
+    
     if (businessRows.length > 0) {
       const business = businessRows[0];
       isBusinessLogin = true;
@@ -59,6 +71,17 @@ const loginUser = async (req, res) => {
       ]);
       if (userRows.length > 0) {
         user = userRows[0];
+        if(user.role === "customer"){
+          const[customerRows] = await db.query(
+            "SELECT id FROM customers WHERE user_id = ? LIMIT 1 ",
+            [user.id]
+          );
+          if(customerRows.length>0){
+            customerId = customerRows[0].id;
+          }else{
+            console.log("User is customer but no customer record found.")
+          }
+        }
       }
     }
 
@@ -118,6 +141,7 @@ const loginUser = async (req, res) => {
         email: isBusinessLogin ? email : user.email,
         role: user.role,
         businessId,
+        customerId,
       },
       businesses,
       isBusinessLogin,
@@ -127,7 +151,65 @@ const loginUser = async (req, res) => {
     res.status(500).json({ message: "Login Failed" });
   }
 };
+
+
+//update customer
+const updateCustomerProfile =async(req,res)=>{
+  const userId = req.user.id;
+  const {
+    phone,
+    address,
+    city,
+    postal_code,
+    gender,
+    preferred_contact
+  }=req.body;
+  try {
+    const [result] = await db.query(
+      `UPDATE customers SET phone = ?, address = ?, preferred_contact = ?, update_at = NOW() WHERE user_id = ?`,
+      [phone,address,city,postal_code,gender,preferred_contact,userId]
+    );
+    if(result.affectedRows ===0){
+      await db.query(
+        "INSERT INTO customers (user_id, phone,address,preferred_contact,gender,city,postal_code) VALUES(?, ?, ?, ?, ?, ?, ?)",
+      [userId,phone,address,preferred_contact,gender,city,postal_code]
+      );
+    }
+    res.status(200).json({
+    message:"Profile Updated Successfully!"
+    });
+  } catch (error) {
+    console.error("Update profile error:",error);
+    res.status(500).json({
+      message:"Failed to update profile!"
+    });
+  };
+}
+const getCustomerProfile =async(req,res)=>{
+  const userId= req.user.id;
+try {
+  const [results]= await db.query(
+    `SELECT c.*, u.name, u.email.u.role FROM customers c JOIN users u ON c.user_id =  u.id WHERE c.user_id = ?`,
+    [userId]
+  );
+  if(rows.length ===0){
+    return res.status(404).json({
+      message:"Customer profile not found."
+    });
+  }
+  res.status(200).json(rows[0]);
+} catch (error) {
+  console.error("Error getting customer profile:", error);
+  res.status(500).json({
+    message:"Failed to fetch profile"
+  });
+  
+}
+}
+
 module.exports = {
   registerUser,
   loginUser,
+  updateCustomerProfile,
+  getCustomerProfile
 };

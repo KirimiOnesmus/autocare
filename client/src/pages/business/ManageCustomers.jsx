@@ -1,88 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MdLocalPrintshop } from "react-icons/md";
-const dummyCustomers = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john@example.com",
-    phone: "+254 700 123456",
-    bookings: 5,
-    lastBooking: "2025-08-15",
-    lastService: "Oil Change",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane@example.com",
-    phone: "+254 701 987654",
-    bookings: 2,
-    lastBooking: "2025-08-12",
-    lastService: "Car Wash",
-  },
-  {
-    id: 3,
-    name: "Michael Johnson",
-    email: "michael@example.com",
-    phone: "+254 702 456789",
-    bookings: 7,
-    lastBooking: "2025-08-14",
-    lastService: "Wheel Alignment",
-  },
-  {
-    id: 4,
-    name: "Emily Davis",
-    email: "emily@example.com",
-    phone: "+254 703 234567",
-    bookings: 3,
-    lastBooking: "2025-08-10",
-    lastService: "Polishing",
-  },
-  {
-    id: 5,
-    name: "Robert Brown",
-    email: "robert@example.com",
-    phone: "+254 704 987654",
-    bookings: 4,
-    lastBooking: "2025-08-11",
-    lastService: "Car Wash",
-  },
-  {
-    id: 6,
-    name: "Sarah Wilson",
-    email: "sarah@example.com",
-    phone: "+254 705 123456",
-    bookings: 6,
-    lastBooking: "2025-08-13",
-    lastService: "Oil Change",
-  },
-  {
-    id: 7,
-    name: "David Lee",
-    email: "david@example.com",
-    phone: "+254 706 234567",
-    bookings: 2,
-    lastBooking: "2025-08-09",
-    lastService: "Polishing",
-  },
-  {
-    id: 8,
-    name: "Anna Scott",
-    email: "anna@example.com",
-    phone: "+254 707 345678",
-    bookings: 1,
-    lastBooking: "2025-08-08",
-    lastService: "Wheel Alignment",
-  },
-];
+import api from "../../components/config/api";
+import { toast } from "react-toastify";
 
 const ManageCustomers = () => {
-  const [customers] = useState(dummyCustomers);
+  const [customers, setCustomers] = useState([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const customersPerPage = 6;
+  const storedUser = JSON.parse(sessionStorage.getItem("user"));
+  const businessId = storedUser?.businessId;
+
+  useEffect(() => {
+   const fetchCustomers = async () => {
+    try {
+      const res = await api(`/business/customers/${businessId}`);
+      setCustomers(res.data.customers || []);
+      console.log("Customer Data:", res.data.customers);
+    } catch (error) {
+      console.log("Error fetching the customers:", error);
+      toast.error("Failed to fetch business customers.");
+    }
+  };
+  fetchCustomers();
+  }, [businessId]);
 
   const filteredCustomers = customers.filter((customer) =>
-    customer.name.toLowerCase().includes(search.toLowerCase())
+    (customer.customer_name || "").toLowerCase().includes(search.toLowerCase())
   );
 
   const indexOfLast = currentPage * customersPerPage;
@@ -95,11 +39,7 @@ const ManageCustomers = () => {
       <h2 className="text-3xl font-semibold text-gray-800">Customers</h2>
       <div className="flex items-center justify-between mt-4">
         <p className="mt-2 text-gray-600">View your customers here.</p>
-          <MdLocalPrintshop
-          className="bg-blue-600 text-white cursor-pointer hover:bg-white hover:text-blue-600 hover:border border-blue-600 rounded-full p-2 text-6xl"
-           />
-        
-            
+        <MdLocalPrintshop className="bg-blue-600 text-white cursor-pointer hover:bg-white hover:text-blue-600 hover:border border-blue-600 rounded-full p-2 text-6xl" />
       </div>
 
       <div className="mt-4 mb-4 w-full ">
@@ -126,7 +66,7 @@ const ManageCustomers = () => {
                 Phone Number
               </th>
               <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700">
-                Bookings
+              Reference Number
               </th>
               <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700">
                 Last Booking
@@ -141,18 +81,18 @@ const ManageCustomers = () => {
               currentCustomers.map((customer) => (
                 <tr key={customer.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-gray-800 font-medium">
-                    {customer.name}
+                    {customer.customer_name}
                   </td>
-                  <td className="px-6 py-4 text-gray-600">{customer.email}</td>
-                  <td className="px-6 py-4 text-gray-600">{customer.phone}</td>
+                  <td className="px-6 py-4 text-gray-600">{customer.customer_email}</td>
+                  <td className="px-6 py-4 text-gray-600">{customer.customer_phone}</td>
                   <td className="px-6 py-4 text-center text-gray-800">
-                    {customer.bookings}
-                  </td>
-                  <td className="px-6 py-4 text-center text-gray-800">
-                    {customer.lastBooking}
+                    {customer.reference}
                   </td>
                   <td className="px-6 py-4 text-center text-gray-800">
-                    {customer.lastService}
+                    {customer.last_booking}
+                  </td>
+                  <td className="px-6 py-4 text-center text-gray-800">
+                    {customer.last_service}
                   </td>
                 </tr>
               ))

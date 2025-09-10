@@ -185,14 +185,7 @@ const BusinessProfile = () => {
                   Our Team
                 </h3>
                 <div className="space-y-2">
-                  {/* <div className="text-sm">
-                    <div className="font-medium">
-                      {business.owner.name} (Owner)
-                    </div>
-                    <div className="text-gray-600">
-                      {business.owner.experience}
-                    </div>
-                  </div> */}
+       
                   {business.staff.slice(0, 10).map((staff, index) => (
                     <div key={index} className="text-sm">
                       <div className="font-medium">

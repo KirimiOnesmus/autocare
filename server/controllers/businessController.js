@@ -275,6 +275,41 @@ const ownerUpdateBusiness = async (req, res) => {
     res.status(500).json({ message: "Falied to Update the business profile." });
   }
 };
+const getCustomerByBusiness=async(req,res)=>{
+  try {
+    const business_id = req.params.businessId;
+    const[customers] = await db.query(
+      `SELECT 
+     b.booking_reference as reference,
+       b.booking_date as last_booking,
+      s.service_name as last_service,
+        u.name as customer_name,
+        u.email as customer_email,
+        u.phone as customer_phone
+      FROM bookings b
+
+    LEFT JOIN services s ON b.service_id = s.id
+	LEFT JOIN customers c ON b.customer_id = c.id
+    LEFT JOIN users u ON c.user_id = u.id
+  WHERE b.business_id = ?
+       `,
+       [business_id]
+    );
+    if(customers.length === 0){
+      res.status(404).json({
+        message: "Businesss had no customers found."
+      });
+      return;
+    }
+    res.json({customers})
+  } catch (error) {
+    console.error("Failed to fetch the customers.", error);
+    res.status(500).json({
+      message: "Internal server error."
+    })
+    
+  }
+}
 //business hours
 const busines_hours= async(req,res)=>{
 const {businessId} = req.params;
@@ -439,5 +474,6 @@ module.exports = {
   ownerUpdateBusiness,
   busines_hours,
   getAllBusiness,
-  getCustomerBussinessById
+  getCustomerBussinessById,
+  getCustomerByBusiness
 };

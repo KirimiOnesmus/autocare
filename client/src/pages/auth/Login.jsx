@@ -41,17 +41,14 @@ const Login = () => {
     try {
       const response = await api.post("/auth/login", dataToSend);
       const { token, user, businesses, isBusinessLogin } = response.data;
-      //debugging:
-      // console.log("Login response:", response.data);
-      // console.log("User role:", user.role);
-      // console.log("Business ID:", user.businessId);
-      // console.log("Businesses array:", businesses);
 
       sessionStorage.setItem("token", token);
+
+      console.log("Customer ID:", user.customerId);
+
       let userToStore = { ...user };
       if (user.role === "owner" && businesses && businesses.length > 0) {
         userToStore.businessId = businesses[0].id;
-        // console.log("Added business ID to owner user:", userToStore.businessId);
       }
 
       sessionStorage.setItem("user", JSON.stringify(userToStore));

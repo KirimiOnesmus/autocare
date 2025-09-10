@@ -2,14 +2,12 @@ import React, { useState, useEffect, useCallback } from "react";
 import { FaRegClock, FaCalendarAlt } from "react-icons/fa";
 import { MdOutlineAttachMoney } from "react-icons/md";
 import { toast } from "react-toastify";
+import api from "../../components/config/api";
 
 const BookService = ({ service, onClose, business, serviceIcon }) => {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [customerInfo, setCustomerInfo] = useState({
-    name: "",
-    phone: "",
-    email: "",
     carModel: "",
     licensePlate: "",
     notes: "",
@@ -19,76 +17,94 @@ const BookService = ({ service, onClose, business, serviceIcon }) => {
   const [availableTimes, setAvailableTimes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [estimatedCompletion, setEstimatedCompletion] = useState("");
+  const [customerId, setCustomerId] = useState(null);
+
+  useEffect(() => {
+    const userData = sessionStorage.getItem("user");
+    console.log("User:",userData)
+    if (userData) {
+      const user = JSON.parse(userData);
+      setCustomerId(user.customerId || user.id);
+    }
+  }, []);
 
   // Convert the array format to an object with day names as keys
   const getBusinessHoursByDay = useCallback(() => {
-    if (!business || !business.business_hours || !Array.isArray(business.business_hours)) {
+    if (
+      !business ||
+      !business.business_hours ||
+      !Array.isArray(business.business_hours)
+    ) {
       return {};
     }
-    
+
     const hoursByDay = {};
-    business.business_hours.forEach(day => {
+    business.business_hours.forEach((day) => {
       hoursByDay[day.day_of_week] = {
         open_time: day.open_time,
         close_time: day.close_time,
-        is_closed: day.is_closed
+        is_closed: day.is_closed,
       };
     });
-    
+
     return hoursByDay;
   }, [business]);
 
   const generateAvailableDates = useCallback(() => {
     const dates = [];
     const today = new Date();
-    
+
     const businessHoursByDay = getBusinessHoursByDay();
-    
+
     // Check if we have business hours data
     if (Object.keys(businessHoursByDay).length === 0) {
       console.log("No business hours data available");
       setAvailableDates(dates);
       return;
     }
-    
-    console.log("Business hours by day:", businessHoursByDay);
-    
+
     for (let i = 0; i < 7; i++) {
       const date = new Date();
       date.setDate(today.getDate() + i);
       const dayOfWeek = date
         .toLocaleDateString("en-US", { weekday: "long" })
         .toLowerCase();
-      
+
       // Safely access business hours
       const businessHours = businessHoursByDay[dayOfWeek];
-      
-      if (businessHours && businessHours.is_closed !== 1 && businessHours.open_time) {
+
+      if (
+        businessHours &&
+        businessHours.is_closed !== 1 &&
+        businessHours.open_time
+      ) {
         // For today's date, check if business is still open
         if (i === 0) {
           const now = new Date();
           const currentHour = now.getHours();
           const currentMinute = now.getMinutes();
-          
+
           const [openHour, openMinute] = businessHours.open_time
             .split(":")
             .map(Number);
           const [closeHour, closeMinute] = businessHours.close_time
             .split(":")
             .map(Number);
-          
+
           // Convert current time and business hours to minutes for easier comparison
           const currentTimeInMinutes = currentHour * 60 + currentMinute;
           const closeTimeInMinutes = closeHour * 60 + closeMinute;
-          
+
           // If current time is before closing time (minus 2 hours for drop-off), include today
-          if (currentTimeInMinutes < (closeTimeInMinutes - 120)) {
+          if (currentTimeInMinutes < closeTimeInMinutes - 120) {
             dates.push({
               date: date.toISOString().split("T")[0],
-              display: "Today, " + date.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-              }),
+              display:
+                "Today, " +
+                date.toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                }),
               dayName: dayOfWeek,
             });
           }
@@ -106,8 +122,7 @@ const BookService = ({ service, onClose, business, serviceIcon }) => {
         }
       }
     }
-    
-    console.log("Available dates:", dates);
+
     setAvailableDates(dates);
     if (dates.length > 0 && !selectedDate) {
       setSelectedDate(dates[0].date);
@@ -125,11 +140,15 @@ const BookService = ({ service, onClose, business, serviceIcon }) => {
     const dayOfWeek = selectedDateObj
       .toLocaleDateString("en-US", { weekday: "long" })
       .toLowerCase();
-    
+
     // Safely access business hours
     const businessHours = businessHoursByDay[dayOfWeek];
 
-    if (!businessHours || businessHours.is_closed === 1 || !businessHours.open_time) {
+    if (
+      !businessHours ||
+      businessHours.is_closed === 1 ||
+      !businessHours.open_time
+    ) {
       setAvailableTimes([]);
       return;
     }
@@ -142,8 +161,8 @@ const BookService = ({ service, onClose, business, serviceIcon }) => {
       .split(":")
       .map(Number);
 
-    // Garage accepts cars from opening time until 2 hours before closing
-    const latestDropOffHour = closeHour - 2;
+    // Garage accepts cars from opening time until 1 hours before closing
+    const latestDropOffHour = closeHour - 1;
 
     let currentHour = openHour;
     let currentMinute = openMinute;
@@ -151,16 +170,19 @@ const BookService = ({ service, onClose, business, serviceIcon }) => {
     // For today's date, start from current time if it's later than opening time
     const today = new Date();
     const isToday = selectedDate === today.toISOString().split("T")[0];
-    
+
     if (isToday) {
       const currentHours = today.getHours();
       const currentMinutes = today.getMinutes();
-      
+
       // If current time is after opening time, start from the next available slot
-      if (currentHours > openHour || (currentHours === openHour && currentMinutes > openMinute)) {
+      if (
+        currentHours > openHour ||
+        (currentHours === openHour && currentMinutes > openMinute)
+      ) {
         currentHour = currentHours;
         currentMinute = Math.ceil(currentMinutes / 30) * 30; // Round up to next 30-minute interval
-        
+
         if (currentMinute >= 60) {
           currentHour += 1;
           currentMinute = 0;
@@ -224,36 +246,69 @@ const BookService = ({ service, onClose, business, serviceIcon }) => {
     generateAvailableTime();
   }, [selectedDate, generateAvailableTime]);
 
-  const handleBooking = () => {
+  const handleBooking = async () => {
     if (
       !selectedDate ||
       !selectedTime ||
-      !customerInfo.name ||
-      !customerInfo.phone ||
-      !customerInfo.carModel
+      !customerInfo.carModel ||
+      !customerInfo.licensePlate ||
+      !customerId
     ) {
       toast.error("Please fill in all required fields");
       return;
     }
-    
+
     setIsLoading(true);
-    setTimeout(() => {
-      const formattedDate = new Date(selectedDate).toLocaleDateString("en-US", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-      toast.success(
-        `Booking confirmed for ${service.service_name} on ${formattedDate} at ${selectedTime}`
-      );
-      onClose();
+    try {
+      const bookingData = {
+        service_id: service.id,
+        business_id: business.id,
+        customer_id: customerId,
+        booking_date: selectedDate,
+        booking_time: selectedTime,
+        estimated_duration: service.duration || 60,
+        original_price: service.price,
+        final_price: service.price,
+        customer_notes: customerInfo.notes,
+        license_plate: customerInfo.licensePlate,
+        car_model: customerInfo.carModel,
+      };
+
+      console.log("Sending booking data:", bookingData);
+
+      const response = await api.post("/bookings/", bookingData);
+      // const result = await response.json();
+
+      if (!response.ok) {
+        toast.error("Failed to create booking");
+        // console.log(result.error);
+      }
+      setTimeout(() => {
+        const formattedDate = new Date(selectedDate).toLocaleDateString(
+          "en-US",
+          {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }
+        );
+        toast.success(
+          `Booking confirmed for ${service.service_name} on ${formattedDate} at ${selectedTime}`
+        );
+        onClose();
+        setIsLoading(false);
+      }, 2000);
+    } catch (error) {
+      console.log("Booking error:", error);
+      toast.error("Failed to create booking. Please try again.");
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   const ServiceIcon = serviceIcon;
-  
+
   // Fallback if no business hours are available
   const businessHoursByDay = getBusinessHoursByDay();
   if (Object.keys(businessHoursByDay).length === 0) {
@@ -273,10 +328,13 @@ const BookService = ({ service, onClose, business, serviceIcon }) => {
           </div>
           <div className="text-center py-8">
             <div className="text-red-500 text-5xl mb-4">⚠️</div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">Booking Unavailable</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              Booking Unavailable
+            </h3>
             <p className="text-gray-600">
-              We're sorry, but booking information is currently unavailable for this business.
-              Please try again later or contact the business directly.
+              We're sorry, but booking information is currently unavailable for
+              this business. Please try again later or contact the business
+              directly.
             </p>
             <button
               onClick={onClose}
@@ -289,7 +347,7 @@ const BookService = ({ service, onClose, business, serviceIcon }) => {
       </div>
     );
   }
-  
+
   return (
     <div className="fixed inset-0 bg-white/20 backdrop-blur-md bg-opacity-30 flex items-center justify-center p-4 z-50">
       <div className="bg-white p-6 w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-lg shadow-xl">
@@ -334,7 +392,7 @@ const BookService = ({ service, onClose, business, serviceIcon }) => {
               may be ready later than expected if additional work is needed.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -362,7 +420,7 @@ const BookService = ({ service, onClose, business, serviceIcon }) => {
                 </p>
               )}
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 <FaRegClock className="inline h-4 w-4 mr-1" />
@@ -392,7 +450,7 @@ const BookService = ({ service, onClose, business, serviceIcon }) => {
               )}
             </div>
           </div>
-          
+
           {estimatedCompletion && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-3">
               <p className="text-sm text-green-800">
@@ -401,37 +459,6 @@ const BookService = ({ service, onClose, business, serviceIcon }) => {
               </p>
             </div>
           )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Your Name *
-            </label>
-            <input
-              type="text"
-              value={customerInfo.name}
-              onChange={(e) =>
-                setCustomerInfo({ ...customerInfo, name: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number *
-            </label>
-            <input
-              type="tel"
-              value={customerInfo.phone}
-              onChange={(e) =>
-                setCustomerInfo({ ...customerInfo, phone: e.target.value })
-              }
-              placeholder="+254700000000"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -448,7 +475,7 @@ const BookService = ({ service, onClose, business, serviceIcon }) => {
               required
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               License Plate

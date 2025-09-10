@@ -9,7 +9,8 @@ const {
     ownerUpdateBusiness,
     busines_hours,
     getAllBusiness,
-    getCustomerBussinessById
+    getCustomerBussinessById,
+    getCustomerByBusiness
 } = require("../controllers/businessController");
 
 //admin routes
@@ -21,6 +22,7 @@ router.get("/owners-businesses/:id",ownerFetchAllBusinesses);
 router.get("/business/:businessId",getBusinessById);
 router.put("/owner-update/:businessId", ownerUpdateBusiness);
 router.put("/business-hours/:businessId", busines_hours);
+router.get("/customers/:businessId", getCustomerByBusiness)
 // customer
 router.get("/businesses", getAllBusiness);
 router.get("/businesses/:id", getCustomerBussinessById)
