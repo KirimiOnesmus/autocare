@@ -182,7 +182,7 @@ const getBookingByReference = async (req, res) => {
 };
 const updateBookingStatus = async (req, res) => {
   try {
-    const { reference } = req.params;
+    const { id } = req.params;
     const { status, staff_notes, cancellation_reason } = req.body;
     const validStatus = [
       "pending",
@@ -198,10 +198,10 @@ const updateBookingStatus = async (req, res) => {
       });
     }
     let updateQuery = "UPDATE bookings SET status = ?";
-    const queryParams = [status, reference];
+    const queryParams = [status];
 
     if (status === "confirmed") {
-      updateQuery += ", confrimed_at = NOW()";
+      updateQuery += ", confirmed_at = NOW()";
     } else if (status === "in_progress") {
       updateQuery += ",started_at = NOW()";
     } else if (status === "completed") {
@@ -213,9 +213,11 @@ const updateBookingStatus = async (req, res) => {
 
     if (staff_notes) {
       updateQuery += ",staff_notes =?";
-      queryParams.splice(1, 0, staff_notes);
+      queryParams.push(staff_notes);
     }
-    updateQuery += "WHERE booking_reference = ?";
+    updateQuery += "WHERE id = ?";
+    queryParams.push(id);
+
     const [result] = await db.query(updateQuery, queryParams);
 
     if (result.affectedRows === 0) {
@@ -224,17 +226,8 @@ const updateBookingStatus = async (req, res) => {
       });
     }
 
-    const [bookingRows] = await db.query(
-      `SELECT b.booking_reference,
-            b.status,
-            s.service_name FROM bookings b
-            LEFT JOIN services s ON b.service_id = s.id
-            WHERE b.booking_reference = ?`,
-      [reference]
-    );
     res.json({
       message: "Booking status updated successfully",
-      booking: bookingRows[0],
     });
   } catch (error) {
     console.error("Update failed:", error);
@@ -243,6 +236,52 @@ const updateBookingStatus = async (req, res) => {
     });
   }
 };
+
+const rescheduleBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { date, time, staff } = req.body;
+
+    if (!date || !time) {
+      return res.status(400).json({
+        message: "Date and time are required for rescheduling"
+      });
+    }
+
+    let updateFields = ["booking_date = ?", "booking_time = ?", "status = 'rescheduled'"];
+    let queryParams = [date, time];
+
+    if (staff && staff !== "Select Staff") {
+      updateFields.push("assigned_staff = ?");
+      queryParams.push(staff);
+    }
+
+    queryParams.push(id);
+
+    const [result] = await db.query(
+      `UPDATE bookings SET ${updateFields.join(", ")} WHERE id = ?`,
+      queryParams
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        message: "Booking not found"
+      });
+    }
+
+    res.json({
+      message: "Booking rescheduled successfully"
+    });
+
+  } catch (error) {
+    console.error("Reschedule booking error:", error);
+    res.status(500).json({
+      message: "Failed to reschedule booking"
+    });
+  }
+};
+
+
 const cancelBooking = async (req, res) => {
   try {
     const { reference } = req.params;
@@ -290,10 +329,51 @@ WHERE booking_reference = ?`,
   }
 };
 
+// bookings per business
+
+const getBookingByBusiness = async (req,res) => {
+  const business_id = req.params.businessId;
+  try {
+    const [bookings] = await db.query(
+      `SELECT 
+        u.name AS customer_name,
+        s.service_name,
+        DATE_FORMAT(b.booking_date, '%Y-%m-%d') AS date,  -- Format as YYYY-MM-DD
+        TIME(b.booking_time) AS time,
+        b.status AS status,
+        b.payment_status AS payment,
+        b.id AS id,
+        b.booking_reference AS reference
+      FROM bookings b
+      LEFT JOIN services s ON b.service_id = s.id
+      LEFT JOIN customers c ON b.customer_id = c.id
+      LEFT JOIN users u ON c.user_id = u.id
+      WHERE b.business_id = ?`,
+      [business_id]
+    );
+    
+    if(bookings.length === 0){
+      res.status(400).json({
+        message: "No bookings found"
+      });
+      return;
+    }
+    
+    res.json(bookings);
+  } catch (error) {
+    console.error("Error fetching the business bookings:", error);
+    res.status(500).json({
+      message: "Internal server error.",
+    });
+  }
+};
+
 module.exports = {
   createBooking,
   getBookingByReference,
   getCustomerBookings,
   updateBookingStatus,
+  rescheduleBooking,
   cancelBooking,
+  getBookingByBusiness
 };

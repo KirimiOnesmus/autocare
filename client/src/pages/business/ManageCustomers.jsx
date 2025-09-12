@@ -16,7 +16,7 @@ const ManageCustomers = () => {
     try {
       const res = await api(`/business/customers/${businessId}`);
       setCustomers(res.data.customers || []);
-      console.log("Customer Data:", res.data.customers);
+      // console.log("Customer Data:", res.data.customers);
     } catch (error) {
       console.log("Error fetching the customers:", error);
       toast.error("Failed to fetch business customers.");
@@ -89,7 +89,11 @@ const ManageCustomers = () => {
                     {customer.reference}
                   </td>
                   <td className="px-6 py-4 text-center text-gray-800">
-                    {customer.last_booking}
+                    {customer.last_booking ? new Date(customer.last_booking).toLocaleDateString("en-GB",{
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric"
+                    }):"-"}
                   </td>
                   <td className="px-6 py-4 text-center text-gray-800">
                     {customer.last_service}
